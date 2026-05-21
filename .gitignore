@@ -1,0 +1,51 @@
+# Build output
+dist/
+
+# Astro generated types & cache
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# VS Code: keep extensions.json + launch.json (shared with the team),
+# ignore per-user state.
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# OS junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Claude Code: shared project settings can be committed, but user-local
+# overrides should not.
+.claude/settings.local.json
+
+# Temp / cache
+.cache/
+tmp/
+.tmp/

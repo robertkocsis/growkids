@@ -1,0 +1,211 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Contacts from "../components/Contacts.astro";
+import SectionTitle from "../components/SectionTitle.astro";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
+import embryosLogo from "../assets/supporters/embryos.png";
+import ideaLogo from "../assets/supporters/idea.png";
+import tronteremLogo from "../assets/supporters/tronterem.png";
+import olecomLogo from "../assets/supporters/olecom.png";
+
+const activities = [
+  {
+    title: "Családtervezési és meddőségi tájékoztatás",
+    body: "Szakmai és emberközpontú információval segítjük a családalapítás útján elindulókat.",
+    icon: "ph:hand-heart-duotone",
+  },
+  {
+    title: "Erdélyi magyar lombikprogram támogatása",
+    body: "Anyagi és közösségi támogatással segítjük a lombikprogramban részt vevő családokat.",
+    icon: "ph:test-tube-duotone",
+  },
+  {
+    title: "Korai fejlesztés",
+    body: "A legkisebbek fejlődésének támogatása szakemberek segítségével, hogy minden gyermek a legjobb eséllyel indulhasson az életben.",
+    icon: "ph:users-three-duotone",
+  },
+  {
+    title: "Terápiás és egyéb fejlesztő lehetőségek",
+    body: "Széles körű terápiás és fejlesztő támogatás biztosítása gyermekek számára, egyéni szükségleteikhez igazodva.",
+    icon: "ph:puzzle-piece-duotone",
+  },
+  {
+    title: "Partneri együttműködések egészségügyi intézményekkel",
+    body: "Szakmai partnereinkkel együttműködve biztosítjuk a legjobb elérhető megoldásokat.",
+    icon: "ph:hospital-duotone",
+  },
+  {
+    title: "Lelki és közösségi támogatás",
+    body: "Figyelünk a lelki jóllétre is, mert tudjuk, hogy a támogatás a gyógyulás fontos része.",
+    icon: "ph:heart-duotone",
+  },
+];
+
+const partners = [
+  {
+    name: "Embryos",
+    logo: embryosLogo,
+    maxH: "max-h-20",
+    href: "https://embryos.ro/",
+  },
+  {
+    name: "IDEA Könyvtár",
+    logo: ideaLogo,
+    maxH: "max-h-24",
+    href: "https://ideakonyvter.ro/",
+  },
+  {
+    name: "Mobila Király",
+    logo: tronteremLogo,
+    maxH: "max-h-20",
+    href: "https://www.mobilakiraly.ro/",
+  },
+  {
+    name: "OLECOM",
+    logo: olecomLogo,
+    maxH: "max-h-20",
+    href: "https://www.olecom.ro/",
+  },
+];
+---
+
+<Layout
+  active="about"
+  title="GrowKids Future — Rólunk"
+  description="A GrowKids Future egy fiatal kezdeményezés a családalapítás támogatására, a gyermekvállalás segítésére és a jövő generációinak támogatására."
+>
+  <!-- ============== Hero ============== -->
+  <section class="px-5 pt-10 pb-16 md:px-10 md:pt-14 md:pb-20 lg:px-20 lg:pb-24">
+    <div
+      class="mx-auto grid items-center gap-10 md:gap-12 lg:grid-cols-2 lg:gap-16"
+      style="max-width: var(--container-max);"
+    >
+      <div class="relative z-10 text-center lg:text-left">
+        <h1 class="headline-lg-mobile md:headline-lg text-on-surface">Rólunk</h1>
+
+        <p class="body-md text-on-surface-variant mt-6">
+          A GrowKids Future egy olyan kezdeményezés, amely
+          <span class="text-primary">a családalapítás támogatását</span>,
+          <span class="text-primary">a gyermekvállalás segítését</span> és
+          <span class="text-primary">a jövő generációinak támogatását</span>
+          tűzte ki célul.
+        </p>
+        <p class="body-md text-on-surface-variant mt-4">
+          Különös figyelmet fordítunk az erdélyi magyar családok támogatására, a meddőségi
+          kezelésekhez és lombikprogramokhoz kapcsolódó tájékoztatásra, közösségi segítségnyújtásra,
+          <span class="text-primary"
+            >korai fejlesztésre, terápiás és egyéb fejlesztő lehetőségekre a gyermekek számára</span
+          >, valamint partnerségi együttműködésekre.
+        </p>
+        <p class="body-md text-on-surface-variant mt-4">
+          Hiszünk abban, hogy
+          <span class="text-primary">minden gyermek egy új kezdet</span>, és
+          <span class="text-primary">minden család megérdemli az esélyt</span>
+          a teljes életre.
+        </p>
+      </div>
+
+      <div class="order-first lg:order-none">
+        <div class="mx-auto max-w-[14rem] sm:max-w-xs md:max-w-sm">
+          <Image
+            src={logo}
+            alt="GrowKids Future — két gyermek profilja egy növényből kibontakozva"
+            width={419}
+            height={512}
+            class="h-auto w-full object-contain"
+            loading="eager"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Activities ============== -->
+  <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="headline-lg-mobile md:headline-lg text-on-surface">Tevékenységeink</h2>
+        <div class="mt-4 flex items-center justify-center gap-3" aria-hidden="true">
+          <span class="bg-outline-variant h-px w-12"></span>
+          <Icon name="ph:leaf-fill" class="text-primary h-4 w-4" />
+          <span class="bg-outline-variant h-px w-12"></span>
+        </div>
+      </div>
+
+      <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {
+          activities.map((a) => (
+            <article class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
+              <div
+                class="bg-primary-fixed/50 flex h-16 w-16 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <Icon name={a.icon} class="text-primary h-8 w-8" />
+              </div>
+              <h3 class="title-sm text-primary mt-5">{a.title}</h3>
+              <p class="body-md text-on-surface-variant mt-3">{a.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Mission pull quote ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="headline-lg-mobile md:headline-lg text-on-surface">Küldetésünk</h2>
+        <div class="mt-4 flex items-center justify-center gap-3" aria-hidden="true">
+          <span class="bg-outline-variant h-px w-12"></span>
+          <Icon name="ph:leaf-fill" class="text-primary h-4 w-4" />
+          <span class="bg-outline-variant h-px w-12"></span>
+        </div>
+      </div>
+
+      <blockquote
+        class="bg-primary-fixed/40 mt-10 rounded-xl px-6 py-12 text-center md:px-16 md:py-14"
+      >
+        <p class="quote-lg md:quote-xl text-on-surface leading-snug">
+          „A kezdeteket támogatjuk, a jövőt neveljük.”
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ============== Contacts ============== -->
+  <Contacts />
+
+  <!-- ============== Partners ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <SectionTitle title="Támogatóink / Partnereink" />
+
+    <div
+      class="mx-auto mt-12 grid grid-cols-2 items-center gap-8 md:grid-cols-4"
+      style="max-width: var(--container-max);"
+    >
+      {
+        partners.map((p) => (
+          <a
+            href={p.href}
+            rel="noopener noreferrer"
+            target="_blank"
+            aria-label={`${p.name} — partner weboldal (új lapon nyílik)`}
+            class="group bg-surface-container-lowest shadow-ambient hover:shadow-ambient-md flex h-24 w-full items-center justify-center overflow-hidden rounded-md px-4 transition hover:-translate-y-0.5"
+          >
+            <Image
+              src={p.logo}
+              alt={`${p.name} logó`}
+              class:list={[
+                p.maxH,
+                "w-auto max-w-full object-contain transition-opacity group-hover:opacity-80",
+              ]}
+            />
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

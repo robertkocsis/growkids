@@ -1,0 +1,67 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SectionTitle from "../components/SectionTitle.astro";
+import Contacts from "../components/Contacts.astro";
+---
+
+<Layout active="contact" title="GrowKids Future — Kapcsolat">
+  <section class="px-5 pt-16 pb-4 md:px-10 lg:px-20">
+    <SectionTitle
+      title="Kapcsolat"
+      subtitle="Keress minket bizalommal! Örömmel válaszolunk kérdéseidre, javaslataidra vagy együttműködési ötleteidre."
+    />
+  </section>
+
+  <Contacts />
+
+  <section class="px-5 pb-20 md:px-10 lg:px-20">
+    <form
+      class="bg-surface-container-lowest shadow-ambient mx-auto space-y-5 rounded-lg p-7 md:p-10"
+      style="max-width: 640px;"
+      action="mailto:contact@growkidsfuture.ro"
+      method="post"
+      enctype="text/plain"
+    >
+      <div>
+        <label for="name" class="label-sm text-on-surface-variant uppercase">Név</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          class="body-md rounded-DEFAULT border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-primary/30 mt-2 w-full border px-4 py-2.5 transition outline-none focus:ring-2"
+        />
+      </div>
+      <div>
+        <label for="email" class="label-sm text-on-surface-variant uppercase">E-mail</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          class="body-md rounded-DEFAULT border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-primary/30 mt-2 w-full border px-4 py-2.5 transition outline-none focus:ring-2"
+        />
+      </div>
+      <div>
+        <label for="message" class="label-sm text-on-surface-variant uppercase">Üzenet</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          required
+          class="body-md rounded-DEFAULT border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-primary/30 mt-2 w-full border px-4 py-2.5 transition outline-none focus:ring-2"
+        ></textarea>
+      </div>
+      <button
+        type="submit"
+        class="label-sm bg-primary text-on-primary shadow-ambient hover:bg-primary-container inline-flex items-center justify-center rounded-full px-6 py-3 uppercase transition"
+      >
+        Küldés
+      </button>
+      <p class="text-on-surface-variant text-xs">
+        Az űrlap jelenleg az e-mail klienseden keresztül küldi az üzenetet. Hamarosan beépítünk egy
+        szerveroldali űrlapfeldolgozót.
+      </p>
+    </form>
+  </section>
+</Layout>

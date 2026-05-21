@@ -1,0 +1,193 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Contacts from "../components/Contacts.astro";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+import embryosLogo from "../assets/supporters/embryos.png";
+
+const values = [
+  {
+    title: "Támogatás és esély",
+    body: "Lehetőséget biztosítunk azoknak a családoknak, akik számára a lombikprogram anyagi terhei leküzdhetetlenek.",
+    icon: "hands",
+  },
+  {
+    title: "Együtt a kezdetekért",
+    body: "Minden támogatott család számára teljes körű orvosi ellátást és emberi odafigyelést biztosítunk.",
+    icon: "heart",
+  },
+  {
+    title: "A jövőért",
+    body: "Hiszünk abban, hogy minden új élet egy reménnyel teli jövő kezdete – közösen építjük a holnapot.",
+    icon: "sprout",
+  },
+  {
+    title: "Közösség ereje",
+    body: "Közösségünk támogatásával, összefogásával és együttérzésével teremtünk valódi változást.",
+    icon: "people",
+  },
+];
+---
+
+<Layout
+  active="ivf"
+  title="GrowKids Future — Kezdeteket Támogatjuk Lombikprogram"
+  description="A Kezdeteket Támogatjuk Lombikprogram az erdélyi magyar családoknak nyújt segítséget a gyermekáldás útján."
+>
+  <!-- ============== Hero ============== -->
+  <section class="px-5 pt-10 pb-16 md:px-10 md:pt-14 md:pb-20 lg:px-20 lg:pb-28">
+    <div
+      class="mx-auto grid items-center gap-10 md:gap-12 lg:grid-cols-2 lg:gap-16"
+      style="max-width: var(--container-max);"
+    >
+      <div class="relative z-10 text-center lg:text-left">
+        <h1 class="headline-lg-mobile md:headline-lg">
+          <span class="text-on-surface block">Kezdeteket Támogatjuk</span>
+          <span class="text-primary mt-1 block">Lombikprogram</span>
+        </h1>
+
+        <p class="body-md text-on-surface-variant mt-6">
+          Programunk célja, hogy segítséget nyújtsunk azoknak a
+          <span class="text-primary">magyar családoknak Erdélyben</span>, akik gyermekáldásra
+          vágynak, és orvosi támogatásra van szükségük ahhoz, hogy ez valóra válhasson.
+        </p>
+        <p class="body-md text-on-surface-variant mt-4">
+          Partneri együttműködésben kiemelkedő szakmai színvonalon dolgozó klinikákkal biztosítjuk a
+          lombikprogramokhoz való hozzáférést és a szükséges támogatást.
+        </p>
+
+        <div class="mt-8 flex justify-center lg:justify-start">
+          <a
+            href="#kapcsolat"
+            class="label-sm border-primary text-primary hover:bg-primary-fixed/40 inline-flex items-center justify-center rounded-full border px-6 py-3 uppercase transition"
+          >
+            Lépj kapcsolatba
+          </a>
+        </div>
+      </div>
+
+      <div class="order-first lg:order-none">
+        <div
+          class="bg-primary-fixed/40 mx-auto flex h-64 w-64 items-center justify-center rounded-full sm:h-72 sm:w-72 md:h-80 md:w-80 lg:h-96 lg:w-96"
+          aria-hidden="true"
+        >
+          <Icon
+            name="ph:baby-duotone"
+            class="text-primary h-32 w-32 sm:h-40 sm:w-40 md:h-44 md:w-44 lg:h-56 lg:w-56"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Partner spotlight ============== -->
+  <section class="px-5 py-12 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div
+        class="bg-surface-container-low grid items-stretch gap-10 rounded-xl p-8 md:grid-cols-[1fr_1px_1fr] md:gap-x-12 md:gap-y-0 md:p-12"
+      >
+        <div
+          class="flex flex-col items-center justify-center gap-6 text-center md:items-start md:text-left"
+        >
+          <h2 class="title-lg text-on-surface">Kiemelt támogató partnerünk</h2>
+          <a
+            href="https://embryos.ro/"
+            rel="noopener noreferrer"
+            target="_blank"
+            class="inline-block transition-opacity hover:opacity-80"
+            aria-label="Embryos — Clinică de fertilitate & ginecologie"
+          >
+            <Image
+              src={embryosLogo}
+              alt="Embryos — Clinică de fertilitate & ginecologie"
+              widths={[280, 360, 480]}
+              sizes="(max-width: 768px) 280px, 360px"
+              class="h-auto w-72 object-contain md:w-80"
+            />
+          </a>
+        </div>
+
+        <div class="bg-outline-variant hidden md:block" aria-hidden="true"></div>
+
+        <div
+          class="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:text-left"
+        >
+          <div
+            class="bg-primary-fixed/60 flex h-20 w-20 flex-none items-center justify-center rounded-full"
+            aria-hidden="true"
+          >
+            <Icon name="ph:hand-heart-duotone" class="text-primary h-10 w-10" />
+          </div>
+
+          <div>
+            <p class="title-md text-on-surface">A Klinika egy évben</p>
+            <p class="display-md md:display-lg text-primary mt-1">1 magyar családot</p>
+            <p class="title-md text-on-surface mt-1">támogat lombikprogramban.</p>
+            <p class="body-md text-on-surface-variant mt-5">
+              Ez az együttműködés reményt és lehetőséget jelent azoknak a pároknak, akik a
+              gyermekáldás útján járnak.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Values / program goals ============== -->
+  <section class="px-5 py-16 md:px-10 md:py-20 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="headline-lg-mobile md:headline-lg text-on-surface">
+          Programunk számokban és céljai
+        </h2>
+        <div class="mt-4 flex items-center justify-center gap-3" aria-hidden="true">
+          <span class="bg-outline-variant h-px w-12"></span>
+          <Icon name="ph:leaf-fill" class="text-primary h-4 w-4" />
+          <span class="bg-outline-variant h-px w-12"></span>
+        </div>
+      </div>
+
+      <div class="mt-12 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        {
+          values.map((v) => (
+            <article class="flex flex-col items-center text-center">
+              <div
+                class="bg-primary-fixed/50 flex h-20 w-20 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                {v.icon === "hands" && (
+                  <Icon name="ph:hands-clapping-duotone" class="text-primary h-10 w-10" />
+                )}
+                {v.icon === "heart" && (
+                  <Icon name="ph:heart-duotone" class="text-primary h-10 w-10" />
+                )}
+                {v.icon === "sprout" && (
+                  <Icon name="ph:plant-duotone" class="text-primary h-10 w-10" />
+                )}
+                {v.icon === "people" && (
+                  <Icon name="ph:users-three-duotone" class="text-primary h-10 w-10" />
+                )}
+              </div>
+              <h3 class="title-sm text-primary mt-6">{v.title}</h3>
+              <p class="body-md text-on-surface-variant mt-3">{v.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Pull quote band ============== -->
+  <section class="px-5 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-10 text-center md:px-16 md:py-12">
+        <p class="quote-lg md:quote-xl text-on-surface">
+          „A kezdeteket támogatjuk, a jövőt neveljük.”
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ============== Contact strip ============== -->
+  <Contacts id="kapcsolat" />
+</Layout>

@@ -1,0 +1,26 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  align?: "left" | "center";
+}
+
+const { title, subtitle, align = "center" } = Astro.props;
+---
+
+<div class:list={["max-w-2xl", align === "center" ? "mx-auto text-center" : ""]}>
+  <h2 class="headline-lg-mobile md:headline-lg text-on-surface">
+    {title}
+  </h2>
+  <div
+    class:list={["mt-4 flex items-center gap-3", align === "center" ? "justify-center" : ""]}
+    aria-hidden="true"
+  >
+    <span class="bg-outline-variant h-px w-12"></span>
+    <Icon name="ph:leaf-fill" class="text-primary h-4 w-4" />
+    <span class="bg-outline-variant h-px w-12"></span>
+  </div>
+  {subtitle && <p class="body-md text-on-surface-variant mt-5">{subtitle}</p>}
+</div>

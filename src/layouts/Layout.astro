@@ -1,0 +1,259 @@
+---
+import "../styles/global.css";
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
+import { url } from "../utils/url";
+
+interface Props {
+  title?: string;
+  description?: string;
+  active?: "home" | "about" | "programs" | "ivf" | "support" | "contact";
+}
+
+const {
+  title = "GrowKids Future",
+  description = "A kezdeteket támogatjuk, a jövőt neveljük.",
+  active = "home",
+} = Astro.props;
+
+const navItems = [
+  { key: "home", label: "Kezdőlap", href: "/" },
+  { key: "about", label: "Rólunk", href: "/about" },
+  { key: "programs", label: "Programok", href: "/programs" },
+  {
+    key: "ivf",
+    label: "Kezdeteket Támogatjuk",
+    label2: "Lombikprogram",
+    href: "/ivf-program",
+  },
+  { key: "support", label: "Támogatás", href: "/support" },
+  { key: "contact", label: "Kapcsolat", href: "/contact" },
+];
+---
+
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" sizes="32x32" href={url("/favicon-32.png")} />
+    <link rel="icon" type="image/png" sizes="16x16" href={url("/favicon-16.png")} />
+    <link rel="apple-touch-icon" sizes="180x180" href={url("/apple-touch-icon.png")} />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <!-- Staging deploy: keep out of search results. Remove when promoting to growkidsfuture.ro. -->
+    <meta name="robots" content="noindex,nofollow" />
+
+    <!-- Webfonts: Newsreader (display) + Manrope (UI/body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap"
+    />
+
+    <title>{title}</title>
+  </head>
+  <body class="bg-surface text-on-surface">
+    <div class="relative flex min-h-dvh flex-col overflow-hidden">
+      <!-- Decorative botanical layers — soft layered depth, no hard shadows -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute top-10 -left-16 hidden h-72 w-72 opacity-40 lg:block"
+      >
+        <svg viewBox="0 0 200 200" class="text-primary-fixed-dim h-full w-full">
+          <path
+            fill="currentColor"
+            d="M40 30c20 20 30 50 20 80s-30 50-50 60c-10-30 0-70 10-90s10-40 20-50z"
+            opacity="0.5"></path>
+          <path
+            fill="currentColor"
+            d="M80 10c-10 30-30 60-60 80 20 0 50-10 70-30s10-40-10-50z"
+            opacity="0.4"></path>
+        </svg>
+      </div>
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute top-40 -right-10 hidden h-80 w-80 opacity-40 lg:block"
+      >
+        <svg viewBox="0 0 200 200" class="text-primary-fixed-dim h-full w-full">
+          <path
+            fill="currentColor"
+            d="M160 20c-20 20-30 50-20 80s30 50 50 60c10-30 0-70-10-90s-10-40-20-50z"
+            opacity="0.5"></path>
+        </svg>
+      </div>
+
+      <header class="relative z-30">
+        <nav
+          class="mx-auto flex items-center justify-between px-5 py-6 md:px-10 lg:px-20"
+          style="max-width: var(--container-max);"
+        >
+          <a href={url("/")} class="flex items-center gap-3" aria-label="GrowKids Future kezdőlap">
+            <Image
+              src={logo}
+              alt="GrowKids Future logó"
+              width={98}
+              height={120}
+              class="h-14 w-auto object-contain"
+              loading="eager"
+            />
+            <span class="font-newsreader text-xl leading-tight">
+              <span class="text-on-surface font-semibold">Grow</span><span
+                class="text-on-surface font-semibold">Kids</span
+              >
+              <span class="text-primary block text-sm font-medium">Future</span>
+            </span>
+          </a>
+
+          <ul class="hidden items-center gap-8 md:flex">
+            {
+              navItems.map((item) => (
+                <li>
+                  <a
+                    href={url(item.href)}
+                    class:list={[
+                      "nav-link hover:text-primary relative inline-block text-center leading-tight transition-colors",
+                      active === item.key ? "text-primary" : "text-on-surface-variant",
+                    ]}
+                  >
+                    {item.label}
+                    {item.label2 && <span class="block">{item.label2}</span>}
+                    {active === item.key && (
+                      <span
+                        class="bg-primary absolute -bottom-2 left-0 h-0.5 w-full"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+
+          <details class="md:hidden" data-mobile-menu>
+            <summary
+              class="label-sm border-outline-variant text-primary cursor-pointer list-none rounded-full border px-4 py-2"
+            >
+              MENÜ
+            </summary>
+            <ul
+              class="border-outline-variant bg-surface-container-lowest shadow-ambient absolute right-5 mt-2 w-52 rounded-md border p-3"
+            >
+              {
+                navItems.map((item) => (
+                  <li>
+                    <a
+                      href={url(item.href)}
+                      class:list={[
+                        "nav-link hover:bg-surface-container-low block rounded px-3 py-2 leading-tight",
+                        active === item.key ? "text-primary" : "text-on-surface",
+                      ]}
+                    >
+                      {item.label}
+                      {item.label2 && <span class="block">{item.label2}</span>}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </details>
+        </nav>
+      </header>
+
+      <main class="relative z-10 flex-1">
+        <slot />
+      </main>
+
+      <footer class="border-outline-variant bg-surface-container-low relative z-10 mt-24 border-t">
+        <div
+          class="mx-auto grid gap-10 px-5 py-16 md:grid-cols-3 md:px-10 lg:px-20"
+          style="max-width: var(--container-max);"
+        >
+          <div>
+            <div class="flex items-center gap-3">
+              <Image src={logo} alt="" width={52} height={64} class="h-12 w-auto object-contain" />
+              <span class="font-newsreader text-xl">
+                <span class="text-on-surface font-semibold">GrowKids</span>
+                <span class="text-primary">Future</span>
+              </span>
+            </div>
+            <p class="body-md text-on-surface-variant mt-4">
+              A kezdeteket támogatjuk, a jövőt neveljük.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="label-sm text-on-surface-variant uppercase">Elérhetőség</h3>
+            <ul class="mt-4 space-y-2">
+              <li>
+                <a
+                  href="mailto:contact@growkidsfuture.ro"
+                  class="body-md text-on-surface hover:text-primary transition-colors"
+                >
+                  contact@growkidsfuture.ro
+                </a>
+              </li>
+              <li>
+                <a
+                  href="tel:+40754038984"
+                  class="body-md text-on-surface hover:text-primary transition-colors"
+                >
+                  +40 754 038 984
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="label-sm text-on-surface-variant uppercase">Kövess minket</h3>
+            <ul class="mt-4 space-y-2">
+              <li>
+                <a
+                  href="https://www.facebook.com/growkidsfuture"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="body-md text-on-surface hover:text-primary transition-colors"
+                  >Facebook — GrowKids Future</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://instagram.com/growkids.future"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="body-md text-on-surface hover:text-primary transition-colors"
+                  >Instagram — @growkids.future</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-outline-variant/60 border-t">
+          <div
+            class="text-on-surface-variant mx-auto px-5 py-5 text-center text-xs md:px-10 lg:px-20"
+            style="max-width: var(--container-max);"
+          >
+            © {new Date().getFullYear()} GrowKids Future. Minden jog fenntartva.
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const menu = document.querySelector<HTMLDetailsElement>("[data-mobile-menu]");
+      if (menu) {
+        document.addEventListener("click", (event) => {
+          if (menu.open && !menu.contains(event.target as Node)) {
+            menu.open = false;
+          }
+        });
+        menu.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("click", () => {
+            menu.open = false;
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+---
+import SectionTitle from "./SectionTitle.astro";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  id?: string;
+}
+
+const { id } = Astro.props;
+
+const contacts = [
+  {
+    label: "E-mail",
+    value: "contact@growkidsfuture.ro",
+    href: "mailto:contact@growkidsfuture.ro",
+    icon: "ph:envelope",
+  },
+  {
+    label: "Telefon",
+    value: "+40 754 038 984",
+    href: "tel:+40754038984",
+    icon: "ph:phone",
+  },
+  {
+    label: "Facebook",
+    value: "GrowKids Future",
+    href: "https://www.facebook.com/growkidsfuture",
+    icon: "ph:facebook-logo-fill",
+  },
+  {
+    label: "Instagram",
+    value: "growkids.future",
+    href: "https://instagram.com/growkids.future",
+    icon: "ph:instagram-logo",
+  },
+];
+---
+
+<section id={id} class:list={["px-5 py-20 md:px-10 lg:px-20", id ? "scroll-mt-24" : ""]}>
+  <SectionTitle title="Elérhetőségeink" />
+
+  <div
+    class="mx-auto mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+    style="max-width: var(--container-max);"
+  >
+    {
+      contacts.map((c) => (
+        <a
+          href={c.href}
+          rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
+          target={c.href.startsWith("http") ? "_blank" : undefined}
+          class="group bg-surface-container-lowest shadow-ambient hover:shadow-ambient-md rounded-lg p-6 text-center transition hover:-translate-y-0.5"
+        >
+          <div class="bg-tertiary-fixed text-primary group-hover:bg-primary-fixed mx-auto flex h-16 w-16 items-center justify-center rounded-full transition">
+            <Icon name={c.icon} class="h-7 w-7" />
+          </div>
+          <div class="label-sm text-on-surface mt-5 uppercase">{c.label}</div>
+          <div class="body-md text-on-surface-variant mt-1">{c.value}</div>
+        </a>
+      ))
+    }
+  </div>
+</section>
