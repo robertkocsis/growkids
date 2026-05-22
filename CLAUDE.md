@@ -37,7 +37,9 @@ All from the project root, with Node 22 active:
 ```bash
 npm install          # install deps
 npm run dev          # dev server at http://localhost:4321
-npm run build        # build to ./dist (static files)
+npm run build        # build to ./dist (default target — same as build:staging in CI)
+npm run build:staging # explicit staging build (GitHub Pages, noindex, /growkids/ base)
+npm run build:prod   # production build for growkidsfuture.ro (writes CNAME, sitemap, allows crawl)
 npm run preview      # preview the production build locally
 npm run check        # TypeScript / Astro diagnostics (no build)
 npm run format       # Prettier write — formats src + config files
@@ -61,6 +63,7 @@ src/
     ivf-program.astro      # /ivf-program  — "Kezdeteket Támogatjuk Lombikprogram" (Embryos clinic partner)
     support.astro          # /support      — Támogatás
     contact.astro          # /contact      — Kapcsolat
+    robots.txt.ts          # static endpoint — emits noindex robots for staging, allow + sitemap for prod
   styles/
     global.css             # Tailwind import + @theme tokens + @utility typography classes
   assets/
@@ -72,7 +75,7 @@ src/
       tronterem.png        # Mobila Király — armchair + crown circular mark (filename kept; brand is Mobila Király, mobilakiraly.ro)
   utils/
     url.ts                 # `url(path)` helper that prefixes internal links with `import.meta.env.BASE_URL` so they survive the base-path switch
-public/                    # static files copied as-is (favicons, robots.txt)
+public/                    # static files copied as-is (favicons only)
 references/                # logo master (NOT served; reference only)
 .github/workflows/
   deploy.yml               # GitHub Pages CI: build + deploy on push to main
@@ -168,54 +171,30 @@ import { Icon } from "astro-icon/components";
 
 Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/growkids/`. The workflow at `.github/workflows/deploy.yml` builds and deploys on every push to `main` (`withastro/action@v3` + `actions/deploy-pages@v4`). One-time enable in the repo: Settings → Pages → Source → "GitHub Actions".
 
-This deploy is **intentionally hidden from search engines** — it's a test environment, not the public site. The plumbing for that:
+### Two targets, one branch
 
-- `public/robots.txt` → `User-agent: * / Disallow: /`
-- `<meta name="robots" content="noindex,nofollow">` in `Layout.astro` (covers crawlers that ignore robots.txt)
-- No sitemap integration installed
+The deploy target is selected at **build time** via the `DEPLOY_TARGET` env var. No branch fork, no per-target file edits.
 
-Future target: **custom domain `growkidsfuture.ro`** (the real public site). Promoting requires editing four files plus DNS:
+| Target    | Command                 | Site                               | robots                           | sitemap | CNAME |
+| --------- | ----------------------- | ---------------------------------- | -------------------------------- | ------- | ----- |
+| `staging` | `npm run build:staging` | `robertkocsis.github.io/growkids/` | `Disallow: /` + `<meta noindex>` | —       | —     |
+| `prod`    | `npm run build:prod`    | `growkidsfuture.ro`                | `Allow: /` + sitemap reference   | ✓       | ✓     |
 
-**1. `astro.config.mjs`** — change `site`, drop `base`, re-enable sitemap:
+`astro.config.mjs` reads `DEPLOY_TARGET` and re-exposes it as `PUBLIC_IS_PROD` so templates and endpoints can branch on it. The pieces:
 
-```js
-// after `npm i -D @astrojs/sitemap`
-import sitemap from "@astrojs/sitemap";
+- **`astro.config.mjs`** — picks `site` / `base` / sitemap integration based on `isProd`.
+- **`src/pages/robots.txt.ts`** — endpoint that emits the staging or prod robots body.
+- **`src/layouts/Layout.astro`** — `{!import.meta.env.PUBLIC_IS_PROD && <meta name="robots" content="noindex,nofollow" />}`.
+- **`build:prod` script** — appends `echo 'growkidsfuture.ro' > dist/CNAME` after the build so the CNAME file only ships on prod.
 
-export default defineConfig({
-  site: "https://growkidsfuture.ro",
-  integrations: [icon(), sitemap()],
-  vite: { plugins: [tailwindcss()] },
-});
-```
+### Promoting to growkidsfuture.ro
 
-**2. `public/robots.txt`** — allow crawling + advertise the sitemap:
+No code edits required. Steps when ready:
 
-```
-User-agent: *
-Allow: /
+1. Run `npm run build:prod` locally and either rsync `dist/` to your own host or wire up a separate GitHub workflow that runs the same script.
+2. **DNS** — at the registrar, set apex A records to the four GitHub Pages IPs (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153). Or an ALIAS/ANAME if the registrar supports it.
 
-Sitemap: https://growkidsfuture.ro/sitemap-index.xml
-```
-
-**3. `src/layouts/Layout.astro`** — remove the staging `<meta>` tag:
-
-```astro
-<!-- Delete this line: -->
-<meta name="robots" content="noindex,nofollow" />
-```
-
-**4. `public/CNAME`** — new file containing exactly:
-
-```
-growkidsfuture.ro
-```
-
-**DNS** — at the registrar, set apex A records to the four GitHub Pages IPs (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153). Or an ALIAS/ANAME if the registrar supports it.
-
-Because all internal links go through `src/utils/url.ts` and `<Image>` handles `base` automatically, no template edits beyond the four files above are needed.
-
-Self-host alternative (not currently used): `npm run build` produces `dist/`; rsync it to any static host.
+If you stay on GitHub Pages for prod, you'd add a second workflow (e.g. `deploy-prod.yml`) that exports `DEPLOY_TARGET=prod` and uses a separate Pages environment, or migrate the existing workflow to publish prod and keep staging on a preview branch. Either is a workflow edit only — the build pipeline already supports it.
 
 ## What to leave alone
 

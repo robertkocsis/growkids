@@ -24,6 +24,8 @@ jobs:
         uses: withastro/action@v3
         with:
           node-version: 22
+        env:
+          DEPLOY_TARGET: staging
 
   deploy:
     needs: build

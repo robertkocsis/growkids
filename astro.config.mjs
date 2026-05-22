@@ -3,22 +3,24 @@ import { defineConfig } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
+import sitemap from "@astrojs/sitemap";
 
-// Current deploy: GitHub Pages staging at https://robertkocsis.github.io/growkids/
-// Staging is intentionally hidden from search engines (Disallow: / in robots.txt
-// + <meta name="robots" content="noindex,nofollow"> in Layout.astro).
+// Deploy target is selected at build time via the DEPLOY_TARGET env var
+// (see package.json scripts `build:staging` and `build:prod`).
 //
-// When promoting to the production domain growkidsfuture.ro:
-//   - set site to "https://growkidsfuture.ro" and remove the `base` line
-//   - add a `public/CNAME` file containing `growkidsfuture.ro`
-//   - add `@astrojs/sitemap` back to integrations
-//   - replace public/robots.txt with one that allows crawling + points at sitemap
-//   - remove the noindex meta tag from Layout.astro
-//   - point DNS at GitHub Pages
+//   staging → https://robertkocsis.github.io/growkids/  — GitHub Pages, noindex
+//   prod    → https://growkidsfuture.ro                  — public site, sitemap + CNAME
+//
+// The src/pages/robots.txt.ts and src/pages/CNAME.ts endpoints read the same
+// flag (exposed to templates as PUBLIC_IS_PROD) so robots, sitemap, CNAME, and
+// the <meta robots> tag all flip together. No file edits needed to promote.
+const isProd = process.env.DEPLOY_TARGET === "prod";
+process.env.PUBLIC_IS_PROD = isProd ? "true" : "";
+
 export default defineConfig({
-  site: "https://robertkocsis.github.io",
-  base: "/growkids",
-  integrations: [icon()],
+  site: isProd ? "https://growkidsfuture.ro" : "https://robertkocsis.github.io",
+  base: isProd ? undefined : "/growkids",
+  integrations: isProd ? [icon(), sitemap()] : [icon()],
   vite: {
     plugins: [tailwindcss()],
   },

@@ -41,8 +41,7 @@ const navItems = [
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <!-- Staging deploy: keep out of search results. Remove when promoting to growkidsfuture.ro. -->
-    <meta name="robots" content="noindex,nofollow" />
+    {!import.meta.env.PUBLIC_IS_PROD && <meta name="robots" content="noindex,nofollow" />}
 
     <!-- Webfonts: Newsreader (display) + Manrope (UI/body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
