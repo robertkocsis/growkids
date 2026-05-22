@@ -39,7 +39,7 @@ npm install          # install deps
 npm run dev          # dev server at http://localhost:4321
 npm run build        # build to ./dist (default target — same as build:staging in CI)
 npm run build:staging # explicit staging build (GitHub Pages, noindex, /growkids/ base)
-npm run build:prod   # production build for growkidsfuture.ro (writes CNAME, sitemap, allows crawl)
+npm run build:prod   # production build for growkidsfuture.ro (sitemap, allows crawl)
 npm run preview      # preview the production build locally
 npm run check        # TypeScript / Astro diagnostics (no build)
 npm run format       # Prettier write — formats src + config files
@@ -175,26 +175,30 @@ Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/grow
 
 The deploy target is selected at **build time** via the `DEPLOY_TARGET` env var. No branch fork, no per-target file edits.
 
-| Target    | Command                 | Site                               | robots                           | sitemap | CNAME |
-| --------- | ----------------------- | ---------------------------------- | -------------------------------- | ------- | ----- |
-| `staging` | `npm run build:staging` | `robertkocsis.github.io/growkids/` | `Disallow: /` + `<meta noindex>` | —       | —     |
-| `prod`    | `npm run build:prod`    | `growkidsfuture.ro`                | `Allow: /` + sitemap reference   | ✓       | ✓     |
+| Target    | Command                 | Site                               | robots                           | sitemap |
+| --------- | ----------------------- | ---------------------------------- | -------------------------------- | ------- |
+| `staging` | `npm run build:staging` | `robertkocsis.github.io/growkids/` | `Disallow: /` + `<meta noindex>` | —       |
+| `prod`    | `npm run build:prod`    | `growkidsfuture.ro`                | `Allow: /` + sitemap reference   | ✓       |
 
 `astro.config.mjs` reads `DEPLOY_TARGET` and re-exposes it as `PUBLIC_IS_PROD` so templates and endpoints can branch on it. The pieces:
 
 - **`astro.config.mjs`** — picks `site` / `base` / sitemap integration based on `isProd`.
 - **`src/pages/robots.txt.ts`** — endpoint that emits the staging or prod robots body.
 - **`src/layouts/Layout.astro`** — `{!import.meta.env.PUBLIC_IS_PROD && <meta name="robots" content="noindex,nofollow" />}`.
-- **`build:prod` script** — appends `echo 'growkidsfuture.ro' > dist/CNAME` after the build so the CNAME file only ships on prod.
+- **`public/.htaccess`** — Apache rules for cPanel/shared hosting (force HTTPS, drop `www`, custom 404, caching, gzip). Ignored by GitHub Pages.
 
 ### Promoting to growkidsfuture.ro
 
-No code edits required. Steps when ready:
+No code edits required.
 
-1. Run `npm run build:prod` locally and either rsync `dist/` to your own host or wire up a separate GitHub workflow that runs the same script.
-2. **DNS** — at the registrar, set apex A records to the four GitHub Pages IPs (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153). Or an ALIAS/ANAME if the registrar supports it.
+**cPanel / shared hosting (current plan):**
 
-If you stay on GitHub Pages for prod, you'd add a second workflow (e.g. `deploy-prod.yml`) that exports `DEPLOY_TARGET=prod` and uses a separate Pages environment, or migrate the existing workflow to publish prod and keep staging on a preview branch. Either is a workflow edit only — the build pipeline already supports it.
+1. `npm run build:prod` locally.
+2. Upload the **contents** of `dist/` into `public_html/` via cPanel File Manager (zip + extract) or FTP/SFTP. The bundled `public/.htaccess` ships with the build and handles HTTPS + canonical host.
+3. DNS: point `growkidsfuture.ro` at the host's nameservers (or A records they list in the welcome email).
+4. cPanel → SSL/TLS Status → Run AutoSSL.
+
+**GitHub Pages alternative:** add a second workflow that exports `DEPLOY_TARGET=prod`, then set apex A records to GitHub's Pages IPs (185.199.108.153, .109.153, .110.153, .111.153). Note: in this case you'd also need to write a `CNAME` file into `dist/` (e.g. `echo growkidsfuture.ro > dist/CNAME` in the workflow) since it's no longer in `build:prod`.
 
 ## What to leave alone
 

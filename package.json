@@ -9,7 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "build:staging": "DEPLOY_TARGET=staging astro build",
-    "build:prod": "DEPLOY_TARGET=prod astro build && echo 'growkidsfuture.ro' > dist/CNAME",
+    "build:prod": "DEPLOY_TARGET=prod astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",

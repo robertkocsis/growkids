@@ -1,0 +1,51 @@
+# Apache config for cPanel / shared hosting.
+# Ignored by GitHub Pages — safe to ship in every build.
+
+# --- Force HTTPS ---------------------------------------------------------
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --- Force apex (no www) -------------------------------------------------
+# Comment this block out if you'd rather canonicalize to www.
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+# --- Pretty URLs ---------------------------------------------------------
+# Astro builds /about/index.html etc., so /about → /about/ → index.html
+# works out of the box via mod_dir. Nothing extra needed.
+
+# --- Custom 404 ----------------------------------------------------------
+ErrorDocument 404 /404.html
+
+# --- Caching -------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # HTML: short cache, must revalidate
+  ExpiresByType text/html "access plus 0 seconds"
+  # Hashed assets (Astro emits /_astro/*.{css,js} with content hashes)
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Long-lived immutable caching for the hashed asset bundle
+  <FilesMatch "\.(css|js|woff2|png|jpe?g|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # HTML should always revalidate so deploys go live immediately
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# --- Compression ---------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>
