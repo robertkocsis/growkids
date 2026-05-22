@@ -4,6 +4,7 @@ import Contacts from "../components/Contacts.astro";
 import { Icon } from "astro-icon/components";
 import { Image } from "astro:assets";
 import embryosLogo from "../assets/supporters/embryos.png";
+import heroImage from "../assets/ivf-hands.jpeg";
 
 const values = [
   {
@@ -67,15 +68,13 @@ const values = [
       </div>
 
       <div class="order-first lg:order-none">
-        <div
-          class="bg-primary-fixed/40 mx-auto flex h-64 w-64 items-center justify-center rounded-full sm:h-72 sm:w-72 md:h-80 md:w-80 lg:h-96 lg:w-96"
-          aria-hidden="true"
-        >
-          <Icon
-            name="ph:baby-duotone"
-            class="text-primary h-32 w-32 sm:h-40 sm:w-40 md:h-44 md:w-44 lg:h-56 lg:w-56"
-          />
-        </div>
+        <Image
+          src={heroImage}
+          alt="Hagyományos népviseletbe öltözött pár közösen tart egy földlabdát, amelyből kis virág sarjad — a kezdetek és az új élet jelképe."
+          widths={[400, 600, 800, 1000]}
+          sizes="(max-width: 1024px) 90vw, 560px"
+          class="shadow-ambient-md mx-auto h-auto w-full max-w-md rounded-xl object-cover lg:max-w-none"
+        />
       </div>
     </div>
   </section>

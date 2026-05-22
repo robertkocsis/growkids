@@ -1,14 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Contacts from "../components/Contacts.astro";
-import SectionTitle from "../components/SectionTitle.astro";
 import { Icon } from "astro-icon/components";
 import { Image } from "astro:assets";
 import logo from "../assets/logo.png";
-import embryosLogo from "../assets/supporters/embryos.png";
-import ideaLogo from "../assets/supporters/idea.png";
-import tronteremLogo from "../assets/supporters/tronterem.png";
-import olecomLogo from "../assets/supporters/olecom.png";
 
 const activities = [
   {
@@ -32,41 +27,9 @@ const activities = [
     icon: "ph:puzzle-piece-duotone",
   },
   {
-    title: "Partneri együttműködések egészségügyi intézményekkel",
-    body: "Szakmai partnereinkkel együttműködve biztosítjuk a legjobb elérhető megoldásokat.",
-    icon: "ph:hospital-duotone",
-  },
-  {
     title: "Lelki és közösségi támogatás",
     body: "Figyelünk a lelki jóllétre is, mert tudjuk, hogy a támogatás a gyógyulás fontos része.",
     icon: "ph:heart-duotone",
-  },
-];
-
-const partners = [
-  {
-    name: "Embryos",
-    logo: embryosLogo,
-    maxH: "max-h-20",
-    href: "https://embryos.ro/",
-  },
-  {
-    name: "IDEA Könyvtár",
-    logo: ideaLogo,
-    maxH: "max-h-24",
-    href: "https://ideakonyvter.ro/",
-  },
-  {
-    name: "Mobila Király",
-    logo: tronteremLogo,
-    maxH: "max-h-20",
-    href: "https://www.mobilakiraly.ro/",
-  },
-  {
-    name: "OLECOM",
-    logo: olecomLogo,
-    maxH: "max-h-20",
-    href: "https://www.olecom.ro/",
   },
 ];
 ---
@@ -74,7 +37,7 @@ const partners = [
 <Layout
   active="about"
   title="GrowKids Future — Rólunk"
-  description="A GrowKids Future egy fiatal kezdeményezés a családalapítás támogatására, a gyermekvállalás segítésére és a jövő generációinak támogatására."
+  description="A GrowKids Future egyesület egy fiatal kezdeményezés a családalapítás támogatására, a gyermekvállalás segítésére és a jövő generációinak támogatására."
 >
   <!-- ============== Hero ============== -->
   <section class="px-5 pt-10 pb-16 md:px-10 md:pt-14 md:pb-20 lg:px-20 lg:pb-24">
@@ -86,7 +49,7 @@ const partners = [
         <h1 class="headline-lg-mobile md:headline-lg text-on-surface">Rólunk</h1>
 
         <p class="body-md text-on-surface-variant mt-6">
-          A GrowKids Future egy olyan kezdeményezés, amely
+          A GrowKids Future egyesület egy olyan kezdeményezés, amely
           <span class="text-primary">a családalapítás támogatását</span>,
           <span class="text-primary">a gyermekvállalás segítését</span> és
           <span class="text-primary">a jövő generációinak támogatását</span>
@@ -177,35 +140,4 @@ const partners = [
 
   <!-- ============== Contacts ============== -->
   <Contacts />
-
-  <!-- ============== Partners ============== -->
-  <section class="px-5 py-20 md:px-10 lg:px-20">
-    <SectionTitle title="Támogatóink / Partnereink" />
-
-    <div
-      class="mx-auto mt-12 grid grid-cols-2 items-center gap-8 md:grid-cols-4"
-      style="max-width: var(--container-max);"
-    >
-      {
-        partners.map((p) => (
-          <a
-            href={p.href}
-            rel="noopener noreferrer"
-            target="_blank"
-            aria-label={`${p.name} — partner weboldal (új lapon nyílik)`}
-            class="group bg-surface-container-lowest shadow-ambient hover:shadow-ambient-md flex h-24 w-full items-center justify-center overflow-hidden rounded-md px-4 transition hover:-translate-y-0.5"
-          >
-            <Image
-              src={p.logo}
-              alt={`${p.name} logó`}
-              class:list={[
-                p.maxH,
-                "w-auto max-w-full object-contain transition-opacity group-hover:opacity-80",
-              ]}
-            />
-          </a>
-        ))
-      }
-    </div>
-  </section>
 </Layout>
