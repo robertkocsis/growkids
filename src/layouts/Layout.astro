@@ -28,18 +28,8 @@ const navItems = [
     label: "Programok",
     href: "/programs/lectures",
     children: [
-      {
-        key: "lectures",
-        label: "Előadások",
-        href: "/programs/lectures",
-        icon: "ph:chalkboard-teacher-duotone",
-      },
-      {
-        key: "camp",
-        label: "Tábor 2026",
-        href: "/programs/camp",
-        icon: "ph:tent-duotone",
-      },
+      { key: "lectures", label: "Előadások", href: "/programs/lectures" },
+      { key: "camp", label: "Tábor 2026", href: "/programs/camp" },
     ],
   },
   {
@@ -158,11 +148,10 @@ const navItems = [
                             <a
                               href={url(child.href)}
                               class:list={[
-                                "nav-link hover:bg-surface-container-low flex items-center gap-3 rounded px-3 py-2.5 leading-tight transition-colors",
+                                "nav-link hover:bg-surface-container-low block rounded px-3 py-2.5 leading-tight transition-colors",
                                 programsSub === child.key ? "text-primary" : "text-on-surface",
                               ]}
                             >
-                              <Icon name={child.icon} class="text-primary size-5" />
                               {child.label}
                             </a>
                           </li>
@@ -216,11 +205,10 @@ const navItems = [
                             <a
                               href={url(child.href)}
                               class:list={[
-                                "nav-link hover:bg-surface-container-low flex items-center gap-2 rounded px-3 py-2 leading-tight",
+                                "nav-link hover:bg-surface-container-low block rounded px-3 py-2 leading-tight",
                                 programsSub === child.key ? "text-primary" : "text-on-surface",
                               ]}
                             >
-                              <Icon name={child.icon} class="text-primary size-4" />
                               {child.label}
                             </a>
                           </li>
