@@ -1,10 +1,21 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import SectionTitle from "../components/SectionTitle.astro";
+// /programs has no page of its own — the Programok dropdown splits into
+// Előadások and Tábor 2026. Redirect any direct hit to the default sub-page.
+import { url } from "../utils/url";
+
+const target = url("/programs/lectures");
 ---
 
-<Layout active="programs" title="GrowKids Future — Programok">
-  <section class="px-5 py-24 md:px-10 md:py-32 lg:px-20">
-    <SectionTitle title="Programok" subtitle="Ez az oldal hamarosan elérhető lesz." />
-  </section>
-</Layout>
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={target} />
+    <meta name="robots" content="noindex" />
+    <title>GrowKids Future — Programok</title>
+  </head>
+  <body>
+    <p>Átirányítás… <a href={target}>Előadások</a></p>
+  </body>
+</html>

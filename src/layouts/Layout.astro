@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
 import logo from "../assets/logo.png";
 import { url } from "../utils/url";
 
@@ -8,18 +9,39 @@ interface Props {
   title?: string;
   description?: string;
   active?: "home" | "about" | "programs" | "ivf" | "support" | "contact";
+  // Highlights the open item inside the Programok dropdown.
+  programsSub?: "lectures" | "camp";
 }
 
 const {
   title = "GrowKids Future",
   description = "A kezdeteket támogatjuk, a jövőt neveljük.",
   active = "home",
+  programsSub,
 } = Astro.props;
 
 const navItems = [
   { key: "home", label: "Kezdőlap", href: "/" },
   { key: "about", label: "Rólunk", href: "/about" },
-  { key: "programs", label: "Programok", href: "/programs" },
+  {
+    key: "programs",
+    label: "Programok",
+    href: "/programs/lectures",
+    children: [
+      {
+        key: "lectures",
+        label: "Előadások",
+        href: "/programs/lectures",
+        icon: "ph:chalkboard-teacher-duotone",
+      },
+      {
+        key: "camp",
+        label: "Tábor 2026",
+        href: "/programs/camp",
+        icon: "ph:tent-duotone",
+      },
+    ],
+  },
   {
     key: "ivf",
     label: "Kezdeteket Támogatjuk",
@@ -107,26 +129,68 @@ const navItems = [
 
           <ul class="hidden items-center gap-8 md:flex">
             {
-              navItems.map((item) => (
-                <li>
-                  <a
-                    href={url(item.href)}
-                    class:list={[
-                      "nav-link hover:text-primary relative inline-block text-center leading-tight transition-colors",
-                      active === item.key ? "text-primary" : "text-on-surface-variant",
-                    ]}
-                  >
-                    {item.label}
-                    {item.label2 && <span class="block">{item.label2}</span>}
-                    {active === item.key && (
-                      <span
-                        class="bg-primary absolute -bottom-2 left-0 h-0.5 w-full"
-                        aria-hidden="true"
+              navItems.map((item) =>
+                item.children ? (
+                  <li class="group relative">
+                    <a
+                      href={url(item.href)}
+                      class:list={[
+                        "nav-link hover:text-primary relative inline-flex items-center gap-1 text-center leading-tight transition-colors",
+                        active === item.key ? "text-primary" : "text-on-surface-variant",
+                      ]}
+                    >
+                      {item.label}
+                      <Icon
+                        name="ph:caret-down"
+                        class="size-3 transition-transform group-hover:rotate-180"
                       />
-                    )}
-                  </a>
-                </li>
-              ))
+                      {active === item.key && (
+                        <span
+                          class="bg-primary absolute -bottom-2 left-0 h-0.5 w-full"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </a>
+                    <div class="invisible absolute top-full left-1/2 z-40 -translate-x-1/2 pt-4 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                      <ul class="border-outline-variant bg-surface-container-lowest shadow-ambient-md w-60 rounded-md border p-2">
+                        {item.children.map((child) => (
+                          <li>
+                            <a
+                              href={url(child.href)}
+                              class:list={[
+                                "nav-link hover:bg-surface-container-low flex items-center gap-3 rounded px-3 py-2.5 leading-tight transition-colors",
+                                programsSub === child.key ? "text-primary" : "text-on-surface",
+                              ]}
+                            >
+                              <Icon name={child.icon} class="text-primary size-5" />
+                              {child.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                ) : (
+                  <li>
+                    <a
+                      href={url(item.href)}
+                      class:list={[
+                        "nav-link hover:text-primary relative inline-block text-center leading-tight transition-colors",
+                        active === item.key ? "text-primary" : "text-on-surface-variant",
+                      ]}
+                    >
+                      {item.label}
+                      {item.label2 && <span class="block">{item.label2}</span>}
+                      {active === item.key && (
+                        <span
+                          class="bg-primary absolute -bottom-2 left-0 h-0.5 w-full"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </a>
+                  </li>
+                )
+              )
             }
           </ul>
 
@@ -140,20 +204,44 @@ const navItems = [
               class="border-outline-variant bg-surface-container-lowest shadow-ambient absolute right-5 mt-2 w-52 rounded-md border p-3"
             >
               {
-                navItems.map((item) => (
-                  <li>
-                    <a
-                      href={url(item.href)}
-                      class:list={[
-                        "nav-link hover:bg-surface-container-low block rounded px-3 py-2 leading-tight",
-                        active === item.key ? "text-primary" : "text-on-surface",
-                      ]}
-                    >
-                      {item.label}
-                      {item.label2 && <span class="block">{item.label2}</span>}
-                    </a>
-                  </li>
-                ))
+                navItems.map((item) =>
+                  item.children ? (
+                    <li>
+                      <span class="nav-link text-on-surface-variant block px-3 py-2 leading-tight">
+                        {item.label}
+                      </span>
+                      <ul class="border-outline-variant ml-3 border-l pl-2">
+                        {item.children.map((child) => (
+                          <li>
+                            <a
+                              href={url(child.href)}
+                              class:list={[
+                                "nav-link hover:bg-surface-container-low flex items-center gap-2 rounded px-3 py-2 leading-tight",
+                                programsSub === child.key ? "text-primary" : "text-on-surface",
+                              ]}
+                            >
+                              <Icon name={child.icon} class="text-primary size-4" />
+                              {child.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ) : (
+                    <li>
+                      <a
+                        href={url(item.href)}
+                        class:list={[
+                          "nav-link hover:bg-surface-container-low block rounded px-3 py-2 leading-tight",
+                          active === item.key ? "text-primary" : "text-on-surface",
+                        ]}
+                      >
+                        {item.label}
+                        {item.label2 && <span class="block">{item.label2}</span>}
+                      </a>
+                    </li>
+                  )
+                )
               }
             </ul>
           </details>

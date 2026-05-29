@@ -59,7 +59,10 @@ src/
   pages/                   # file-based routing
     index.astro            # /         — Kezdőlap (home)
     about.astro            # /about        — Rólunk
-    programs.astro         # /programs     — Programok
+    programs.astro         # /programs     — redirect-only (meta refresh) → /programs/lectures
+    programs/
+      lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first, per-lecture photo gallery + lightbox)
+      camp.astro           # /programs/camp     — Tábor 2026 (stub, awaiting content)
     ivf-program.astro      # /ivf-program  — "Kezdeteket Támogatjuk Lombikprogram" (Embryos clinic partner)
     support.astro          # /support      — Támogatás
     contact.astro          # /contact      — Kapcsolat
@@ -161,7 +164,7 @@ import { Icon } from "astro-icon/components";
 - **Language:** All user-facing copy is Hungarian. Variable names, comments, and component names are English.
 - **Routing:** Lowercase English slugs (`/about`, `/programs`, `/support`, `/contact`) so future localization is straightforward — the visible labels stay Hungarian, only the URL/file names are English. The nav in `Layout.astro` is the source of truth for the page list and active state.
 - **Internal links:** Always go through the `url()` helper in `src/utils/url.ts` (e.g. `href={url("/about")}`), never raw `href="/about"`. The site is deployed under a `base` path on GitHub Pages (`/growkids/`); the helper prepends it. When we switch to the custom domain `growkidsfuture.ro`, removing `base` from `astro.config.mjs` is enough — no link edits required.
-- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`.
+- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp"` to highlight the open sub-item. Both sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
 - **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`.
 - **External links:** Always add `rel="noopener noreferrer"` and `target="_blank"`.
 - **Forms:** No backend yet. Contact form falls back to `mailto:` action. Replace before relying on it.
