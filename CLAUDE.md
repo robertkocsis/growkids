@@ -73,6 +73,7 @@ src/
       idea.png             # IDEA Könyvtár
       olecom.png           # OLECOM — construction
       tronterem.png        # Mobila Király — armchair + crown circular mark (filename kept; brand is Mobila Király, mobilakiraly.ro)
+      silvafun.png         # silvafun — sun-over-hills mark + wordmark
   utils/
     url.ts                 # `url(path)` helper that prefixes internal links with `import.meta.env.BASE_URL` so they survive the base-path switch
 public/                    # static files copied as-is (favicons only)
