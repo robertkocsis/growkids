@@ -191,7 +191,7 @@ import { Icon } from "astro-icon/components";
 
 ## Deployment
 
-Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/growkids/`. The workflow at `.github/workflows/deploy.yml` builds and deploys on every push to `main` (`withastro/action@v3` + `actions/deploy-pages@v4`). One-time enable in the repo: Settings → Pages → Source → "GitHub Actions".
+Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/growkids/`. The workflow at `.github/workflows/deploy.yml` builds and deploys on every push to `main` (`actions/checkout@v5` + `withastro/action@v6` + `actions/deploy-pages@v5`, all on Node 24 runners). One-time enable in the repo: Settings → Pages → Source → "GitHub Actions".
 
 ### Two targets, one branch
 
