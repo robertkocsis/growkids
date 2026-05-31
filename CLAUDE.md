@@ -87,7 +87,8 @@ src/
 public/                    # static files copied as-is (favicons only)
 references/                # logo master (NOT served; reference only)
 .github/workflows/
-  deploy.yml               # GitHub Pages CI: build + deploy on push to main
+  deploy.yml               # GitHub Pages CI (staging): build + deploy on push to main
+  deploy-prod.yml          # cPanel CI (prod): manual (workflow_dispatch), build:prod + FTPS upload to public_html/
 DESIGN.md                  # authoritative design system spec
 dist/                      # build output — git-ignored
 ```
@@ -213,14 +214,17 @@ The deploy target is selected at **build time** via the `DEPLOY_TARGET` env var.
 
 No code edits required.
 
-**cPanel / shared hosting (current plan):**
+**cPanel over FTPS via GitHub Actions (current plan).** `.github/workflows/deploy-prod.yml` runs `build:prod` and uploads `dist/` → `public_html/` over FTPS using [`SamKirkland/FTP-Deploy-Action`](https://github.com/SamKirkland/FTP-Deploy-Action). It's **manual** (`workflow_dispatch`) — trigger from the repo's Actions tab so prod stays a deliberate step separate from the auto-deploying staging Pages workflow.
 
-1. `npm run build:prod` locally.
-2. Upload the **contents** of `dist/` into `public_html/` via cPanel File Manager (zip + extract) or FTP/SFTP. The bundled `public/.htaccess` ships with the build and handles HTTPS + canonical host.
-3. DNS: point `growkidsfuture.ro` at the host's nameservers (or A records they list in the welcome email).
-4. cPanel → SSL/TLS Status → Run AutoSSL.
+- One-time: add repo secrets `FTP_HOST`, `FTP_USER`, `FTP_PASS` under **Settings → Secrets and variables → Actions**.
+- `server-dir` is `./public_html/` (main cPanel account lands in the home dir). If the FTP account is scoped to `public_html`, change it to `./`.
+- The action keeps a state file on the server and only uploads changed files. `dangerous-clean-slate: false` so it never wipes unmanaged dirs (mail, cgi-bin).
+- The bundled `public/.htaccess` ships in the build and handles HTTPS + canonical host on the Apache side.
+- First-time DNS: point `growkidsfuture.ro` at the host (nameservers or A records from the welcome email), then cPanel → SSL/TLS Status → AutoSSL.
 
-**GitHub Pages alternative:** add a second workflow that exports `DEPLOY_TARGET=prod`, then set apex A records to GitHub's Pages IPs (185.199.108.153, .109.153, .110.153, .111.153). Note: in this case you'd also need to write a `CNAME` file into `dist/` (e.g. `echo growkidsfuture.ro > dist/CNAME` in the workflow) since it's no longer in `build:prod`.
+**Manual fallback:** `npm run build:prod` locally, then upload the **contents** of `dist/` into `public_html/` via cPanel File Manager (zip + extract), or `lftp -c "set ftp:ssl-force true; open -u $FTP_USER,$FTP_PASS $FTP_HOST; mirror -R --delete dist/ public_html/"`.
+
+**GitHub Pages alternative:** add a workflow that exports `DEPLOY_TARGET=prod`, then set apex A records to GitHub's Pages IPs (185.199.108.153, .109.153, .110.153, .111.153). In that case you'd also need to write a `CNAME` file into `dist/` (e.g. `echo growkidsfuture.ro > dist/CNAME` in the workflow) since it's no longer in `build:prod`.
 
 ## What to leave alone
 

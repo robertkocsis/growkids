@@ -1,0 +1,44 @@
+name: Deploy to cPanel (prod)
+
+# Manual only — promoting to growkidsfuture.ro is a deliberate step.
+# Run it from the repo's Actions tab → "Deploy to cPanel (prod)" → "Run workflow".
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: "cpanel-prod"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (prod)
+        run: npm run build:prod
+
+      - name: Upload dist/ to cPanel over FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          protocol: ftps
+          # Main cPanel account logs into the home dir, so the docroot is public_html/.
+          # If you use an FTP account scoped to public_html, change this to ./
+          server-dir: ./public_html/
+          local-dir: ./dist/
+          # .htaccess ships inside dist/ (from public/) and handles HTTPS + canonical host.
+          # Don't wipe files the deploy doesn't manage (e.g. cgi-bin, mail dirs):
+          dangerous-clean-slate: false
