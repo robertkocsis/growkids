@@ -1,42 +1,68 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { Icon } from "astro-icon/components";
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
 interface Lecture {
+  /**
+   * Stable kebab-case id. Photos for this event live in
+   * `src/assets/lectures/<id>/` — drop image files there and they are picked up
+   * automatically (sorted by filename). No code change needed to add photos.
+   */
+  id: string;
   title: string;
   summary: string;
   date: string;
   location: string[];
   audience: string;
-  // Add optimized images from src/assets/lectures/ here once available.
-  // An empty array renders placeholder tiles + a "coming soon" note.
-  images: { src: ImageMetadata; alt: string }[];
+  /** Optional presenter / speaker. */
+  presenter?: string;
 }
 
-// ⚠️ PLACEHOLDER CONTENT — Zsici will supply the real lecture texts, dates,
-// locations and photos. The dates/addresses below are from the mockup and are
-// NOT correct. New lectures go at the TOP of this array (newest first).
+// New lectures go at the TOP of this array (newest first).
 const lectures: Lecture[] = [
   {
-    title: "TSMT előadás szülőknek",
-    summary: "Hogyan segíthetjük gyermekünk fejlődését otthon a TSMT eszközeivel?",
-    date: "2025. június 26. (csütörtök) 17:00",
-    location: ["Embryos Klinika előadóterme", "1052 Budapest, Petőfi Sándor utca 11."],
-    audience: "szülők, érdeklődők",
-    images: [],
-  },
-  {
+    id: "tsmt-pedagogusoknak-kraszna-2025",
     title: "TSMT előadás pedagógusoknak",
     summary:
-      "A TSMT módszer szerepe az óvodai és iskolai mindennapokban – gyakorlati megközelítésben.",
-    date: "2025. június 12. (csütörtök) 17:00",
-    location: ["Embryos Klinika előadóterme", "1052 Budapest, Petőfi Sándor utca 11."],
+      "Hogyan segítheti a mozgásterápia – a szenzoros integráció, és ezen belül a TSMT terápia – a gyerekek harmonikus fejlődését, az iskolai beválást és a békés hétköznapokat?",
+    date: "2025. április 17. (csütörtök) 17:00",
+    location: [
+      "Cserey-Goga Technológiai Líceum díszterme",
+      "Kraszna, Szilágy megye",
+    ],
     audience: "pedagógusok, szakemberek",
-    images: [],
+    presenter: "Simpf-Domokos Orsolya",
   },
 ];
+
+// ── Auto-collect each event's photos from src/assets/lectures/<id>/ ──────────
+// Drop files into the folder named after the lecture id; they appear here,
+// sorted by filename, fully optimized by astro:assets.
+const galleryFiles = import.meta.glob<{ default: ImageMetadata }>(
+  "../../assets/lectures/*/*.{jpeg,jpg,png,webp,avif}",
+  { eager: true },
+);
+
+const galleries: Record<string, ImageMetadata[]> = {};
+for (const path of Object.keys(galleryFiles).sort()) {
+  const id = path.match(/lectures\/([^/]+)\//)?.[1];
+  if (!id) continue;
+  (galleries[id] ??= []).push(galleryFiles[path].default);
+}
+
+// Pre-render large optimized (WebP) versions for the lightbox, keyed by id.
+const titleById = Object.fromEntries(lectures.map((l) => [l.id, l.title]));
+const galleryData: Record<string, { src: string; alt: string }[]> = {};
+for (const [id, imgs] of Object.entries(galleries)) {
+  galleryData[id] = await Promise.all(
+    imgs.map(async (img, i) => ({
+      src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+      alt: `${titleById[id] ?? "Előadás"} – ${i + 1}. kép`,
+    })),
+  );
+}
 ---
 
 <Layout
@@ -61,153 +87,277 @@ const lectures: Lecture[] = [
   <section class="px-5 pb-20 md:px-10 lg:px-20">
     <div class="mx-auto flex flex-col gap-8" style="max-width: var(--container-max);">
       {
-        lectures.map((lecture) => (
-          <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
-            <div class="flex items-start gap-4">
-              <div
-                class="bg-primary-fixed/50 flex size-14 flex-none items-center justify-center rounded-full"
-                aria-hidden="true"
-              >
-                <Icon name="ph:chalkboard-teacher-duotone" class="text-primary size-7" />
-              </div>
-              <div>
-                <h2 class="title-sm md:title-lg text-on-surface">{lecture.title}</h2>
-                <p class="body-md text-on-surface-variant mt-2">{lecture.summary}</p>
-              </div>
-            </div>
-
-            <dl class="border-outline-variant mt-6 grid gap-4 border-t pt-6 sm:grid-cols-3">
-              <div class="flex items-start gap-3">
-                <Icon name="ph:calendar-blank" class="text-primary mt-0.5 size-5 flex-none" />
+        lectures.map((lecture) => {
+          const images = galleries[lecture.id] ?? [];
+          const thumbs = images.slice(0, 3);
+          const remaining = images.length - thumbs.length;
+          return (
+            <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
+              <div class="flex items-start gap-4">
+                <div
+                  class="bg-primary-fixed/50 flex size-14 flex-none items-center justify-center rounded-full"
+                  aria-hidden="true"
+                >
+                  <Icon name="ph:chalkboard-teacher-duotone" class="text-primary size-7" />
+                </div>
                 <div>
-                  <dt class="label-sm text-on-surface-variant uppercase">Időpont</dt>
-                  <dd class="body-md text-on-surface mt-1">{lecture.date}</dd>
+                  <h2 class="title-sm md:title-lg text-on-surface">{lecture.title}</h2>
+                  <p class="body-md text-on-surface-variant mt-2">{lecture.summary}</p>
                 </div>
               </div>
-              <div class="flex items-start gap-3">
-                <Icon name="ph:map-pin" class="text-primary mt-0.5 size-5 flex-none" />
-                <div>
-                  <dt class="label-sm text-on-surface-variant uppercase">Helyszín</dt>
-                  <dd class="body-md text-on-surface mt-1">
-                    {lecture.location.map((line) => (
-                      <span class="block">{line}</span>
-                    ))}
-                  </dd>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <Icon name="ph:user" class="text-primary mt-0.5 size-5 flex-none" />
-                <div>
-                  <dt class="label-sm text-on-surface-variant uppercase">Célcsoport</dt>
-                  <dd class="body-md text-on-surface mt-1">{lecture.audience}</dd>
-                </div>
-              </div>
-            </dl>
 
-            <div class="mt-8">
-              <div class="text-on-surface-variant flex items-center gap-2">
-                <Icon name="ph:images-duotone" class="text-primary size-5" />
-                <span class="label-sm uppercase">Képgaléria</span>
-              </div>
+              <dl class="border-outline-variant mt-6 grid gap-4 border-t pt-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="flex items-start gap-3">
+                  <Icon name="ph:calendar-blank" class="text-primary mt-0.5 size-5 flex-none" />
+                  <div>
+                    <dt class="label-sm text-on-surface-variant uppercase">Időpont</dt>
+                    <dd class="body-md text-on-surface mt-1">{lecture.date}</dd>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <Icon name="ph:map-pin" class="text-primary mt-0.5 size-5 flex-none" />
+                  <div>
+                    <dt class="label-sm text-on-surface-variant uppercase">Helyszín</dt>
+                    <dd class="body-md text-on-surface mt-1">
+                      {lecture.location.map((line) => (
+                        <span class="block">{line}</span>
+                      ))}
+                    </dd>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <Icon name="ph:user" class="text-primary mt-0.5 size-5 flex-none" />
+                  <div>
+                    <dt class="label-sm text-on-surface-variant uppercase">Célcsoport</dt>
+                    <dd class="body-md text-on-surface mt-1">{lecture.audience}</dd>
+                  </div>
+                </div>
+                {lecture.presenter && (
+                  <div class="flex items-start gap-3">
+                    <Icon name="ph:microphone-stage" class="text-primary mt-0.5 size-5 flex-none" />
+                    <div>
+                      <dt class="label-sm text-on-surface-variant uppercase">Előadó</dt>
+                      <dd class="body-md text-on-surface mt-1">{lecture.presenter}</dd>
+                    </div>
+                  </div>
+                )}
+              </dl>
 
-              {lecture.images.length > 0 ? (
-                <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {lecture.images.map((img) => (
-                    <li>
-                      <button
-                        type="button"
-                        class="lightbox-trigger group focus-visible:ring-primary block w-full overflow-hidden rounded focus-visible:ring-2 focus-visible:outline-none"
-                        data-full={img.src.src}
-                        data-alt={img.alt}
-                      >
-                        <Image
-                          src={img.src}
-                          alt={img.alt}
-                          widths={[240, 360, 480]}
-                          sizes="(max-width: 640px) 45vw, 360px"
-                          class="aspect-video w-full object-cover transition group-hover:scale-105"
-                        />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <>
-                  <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3" aria-hidden="true">
-                    {[0, 1, 2].map(() => (
-                      <li class="bg-surface-container flex aspect-video items-center justify-center rounded">
-                        <Icon name="ph:image-duotone" class="text-on-surface-variant/40 size-8" />
-                      </li>
-                    ))}
-                  </ul>
-                  <p class="body-md text-on-surface-variant/70 mt-3 italic">
-                    A képek hamarosan elérhetők lesznek.
-                  </p>
-                </>
-              )}
-            </div>
-          </article>
-        ))
+              <div class="mt-8">
+                <div class="text-on-surface-variant flex items-center gap-2">
+                  <Icon name="ph:images-duotone" class="text-primary size-5" />
+                  <span class="label-sm uppercase">Képgaléria</span>
+                </div>
+
+                {images.length > 0 ? (
+                  <>
+                    <ul class="mt-4 grid grid-cols-3 gap-3">
+                      {thumbs.map((img, i) => (
+                        <li>
+                          <button
+                            type="button"
+                            class="gallery-trigger group focus-visible:ring-primary relative block w-full overflow-hidden rounded focus-visible:ring-2 focus-visible:outline-none"
+                            data-gallery={lecture.id}
+                            data-index={i}
+                            aria-label={`${lecture.title} – galéria megnyitása`}
+                          >
+                            <Image
+                              src={img}
+                              alt={`${lecture.title} – ${i + 1}. kép`}
+                              widths={[240, 360, 480]}
+                              sizes="(max-width: 640px) 30vw, 360px"
+                              class="aspect-video w-full object-cover transition group-hover:scale-105"
+                            />
+                            {i === 2 && remaining > 0 && (
+                              <span class="absolute inset-0 flex items-center justify-center bg-black/55 transition group-hover:bg-black/65">
+                                <span class="title-sm text-white">+{remaining}</span>
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      class="gallery-trigger text-primary hover:text-primary-container mt-4 inline-flex items-center gap-2 rounded-full"
+                      data-gallery={lecture.id}
+                      data-index="0"
+                    >
+                      <Icon name="ph:images" class="size-5" />
+                      <span class="label-sm uppercase">
+                        Galéria megnyitása ({images.length} kép)
+                      </span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <ul class="mt-4 grid grid-cols-3 gap-3" aria-hidden="true">
+                      {[0, 1, 2].map(() => (
+                        <li class="bg-surface-container flex aspect-video items-center justify-center rounded">
+                          <Icon name="ph:image-duotone" class="text-on-surface-variant/40 size-8" />
+                        </li>
+                      ))}
+                    </ul>
+                    <p class="body-md text-on-surface-variant/70 mt-3 italic">
+                      A képek hamarosan elérhetők lesznek.
+                    </p>
+                  </>
+                )}
+              </div>
+            </article>
+          );
+        })
       }
     </div>
   </section>
 
-  <!-- Lightbox overlay — activates for lectures that have real images -->
+  <!-- Gallery data for the lightbox (id -> [{ src, alt }]) -->
+  <script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />
+
+  <!-- ============== Gallery lightbox ============== -->
   <div
     id="lightbox"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4"
+    class="fixed inset-0 z-50 hidden flex-col bg-black/85 p-4 sm:p-6"
     role="dialog"
     aria-modal="true"
-    aria-label="Kép nagyítva"
+    aria-label="Képgaléria"
   >
     <button
       type="button"
       id="lightbox-close"
-      class="absolute top-5 right-5 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+      class="absolute top-4 right-4 z-10 flex size-11 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70"
       aria-label="Bezárás"
     >
       <Icon name="ph:x" class="size-6" />
     </button>
-    <img
-      id="lightbox-img"
-      src=""
-      alt=""
-      class="max-h-[90vh] max-w-full rounded-lg object-contain"
-    />
+
+    <div class="relative flex min-h-0 flex-1 items-center justify-center">
+      <button
+        type="button"
+        id="lightbox-prev"
+        class="absolute left-1 flex size-12 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70 sm:left-2"
+        aria-label="Előző kép"
+      >
+        <Icon name="ph:caret-left" class="size-6" />
+      </button>
+      <img id="lightbox-img" src="" alt="" class="max-h-full max-w-full rounded-lg object-contain" />
+      <button
+        type="button"
+        id="lightbox-next"
+        class="absolute right-1 flex size-12 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70 sm:right-2"
+        aria-label="Következő kép"
+      >
+        <Icon name="ph:caret-right" class="size-6" />
+      </button>
+    </div>
+
+    <div class="mx-auto mt-3 w-full max-w-3xl flex-none">
+      <p id="lightbox-counter" class="label-sm mb-2 text-center text-white/70 uppercase"></p>
+      <div id="lightbox-thumbs" class="flex justify-center gap-2 overflow-x-auto pb-1"></div>
+    </div>
   </div>
 
   <script>
-    const lightbox = document.getElementById("lightbox");
-    const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement | null;
-    const closeBtn = document.getElementById("lightbox-close");
+    type GalleryItem = { src: string; alt: string };
 
-    const open = (src: string, alt: string) => {
-      if (!lightbox || !lightboxImg) return;
-      lightboxImg.src = src;
-      lightboxImg.alt = alt;
+    const dataEl = document.getElementById("galleries-data");
+    const galleries: Record<string, GalleryItem[]> = dataEl
+      ? JSON.parse(dataEl.textContent || "{}")
+      : {};
+
+    const lightbox = document.getElementById("lightbox");
+    // Portal the overlay to <body> so it escapes the <main z-10> stacking
+    // context — otherwise the z-30 header paints above it and steals clicks.
+    if (lightbox) document.body.appendChild(lightbox);
+    const img = document.getElementById("lightbox-img") as HTMLImageElement | null;
+    const counter = document.getElementById("lightbox-counter");
+    const thumbs = document.getElementById("lightbox-thumbs");
+
+    let current: GalleryItem[] = [];
+    let index = 0;
+
+    const render = () => {
+      if (!img || current.length === 0) return;
+      const item = current[index];
+      img.src = item.src;
+      img.alt = item.alt;
+      if (counter) counter.textContent = `${index + 1} / ${current.length}`;
+      thumbs?.querySelectorAll<HTMLButtonElement>("[data-thumb]").forEach((btn, i) => {
+        const active = i === index;
+        btn.classList.toggle("ring-2", active);
+        btn.classList.toggle("ring-white", active);
+        btn.classList.toggle("opacity-60", !active);
+      });
+    };
+
+    const buildThumbs = () => {
+      if (!thumbs) return;
+      thumbs.innerHTML = "";
+      current.forEach((item, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.thumb = String(i);
+        btn.className =
+          "flex-none overflow-hidden rounded transition hover:opacity-100 focus-visible:outline-none";
+        const t = document.createElement("img");
+        t.src = item.src;
+        t.alt = item.alt;
+        t.className = "h-14 w-20 object-cover";
+        btn.appendChild(t);
+        btn.addEventListener("click", () => {
+          index = i;
+          render();
+        });
+        thumbs.appendChild(btn);
+      });
+    };
+
+    const open = (galleryId: string, startIndex: number) => {
+      const items = galleries[galleryId];
+      if (!lightbox || !items || items.length === 0) return;
+      current = items;
+      index = Math.min(Math.max(startIndex, 0), items.length - 1);
+      buildThumbs();
+      render();
       lightbox.classList.remove("hidden");
       lightbox.classList.add("flex");
       document.body.style.overflow = "hidden";
     };
 
     const close = () => {
-      if (!lightbox || !lightboxImg) return;
+      if (!lightbox) return;
       lightbox.classList.add("hidden");
       lightbox.classList.remove("flex");
-      lightboxImg.src = "";
+      if (img) img.src = "";
       document.body.style.overflow = "";
     };
 
-    document.querySelectorAll<HTMLButtonElement>(".lightbox-trigger").forEach((btn) => {
-      btn.addEventListener("click", () => open(btn.dataset.full ?? "", btn.dataset.alt ?? ""));
+    const step = (delta: number) => {
+      if (current.length === 0) return;
+      index = (index + delta + current.length) % current.length;
+      render();
+    };
+
+    document.querySelectorAll<HTMLButtonElement>(".gallery-trigger").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        open(btn.dataset.gallery ?? "", Number(btn.dataset.index ?? 0)),
+      );
     });
 
-    closeBtn?.addEventListener("click", close);
+    // Single delegated handler on the overlay — robust to icon/SVG click
+    // targets (closest() walks up to the button) and to any DOM re-render.
     lightbox?.addEventListener("click", (e) => {
-      if (e.target === lightbox) close();
+      const target = e.target as HTMLElement;
+      if (target === lightbox) return close(); // backdrop click
+      if (target.closest("#lightbox-close")) return close();
+      if (target.closest("#lightbox-prev")) return step(-1);
+      if (target.closest("#lightbox-next")) return step(1);
     });
     document.addEventListener("keydown", (e) => {
+      if (lightbox?.classList.contains("hidden")) return;
       if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") step(-1);
+      if (e.key === "ArrowRight") step(1);
     });
   </script>
 </Layout>
