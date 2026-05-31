@@ -23,6 +23,19 @@ interface Lecture {
 // New lectures go at the TOP of this array (newest first).
 const lectures: Lecture[] = [
   {
+    id: "tsmt-szuloknek-kraszna-2025",
+    title: "TSMT előadás szülőknek",
+    summary:
+      "Minden, amit a mozgásról és az idegrendszer fejlődéséről tudni érdemes. Mikor áll készen valóban a gyermek az iskolára?",
+    date: "2025. május 22. (péntek) 18:00",
+    location: [
+      "Cserey-Goga Technológiai Líceum díszterme",
+      "Kraszna, Szilágy megye",
+    ],
+    audience: "szülők, érdeklődők",
+    presenter: "Simpf-Domokos Orsolya",
+  },
+  {
     id: "tsmt-pedagogusoknak-kraszna-2025",
     title: "TSMT előadás pedagógusoknak",
     summary:
@@ -76,10 +89,6 @@ for (const [id, imgs] of Object.entries(galleries)) {
     <div class="mx-auto" style="max-width: var(--container-max);">
       <p class="label-sm text-primary uppercase">Programjaink</p>
       <h1 class="headline-lg-mobile md:headline-lg text-on-surface mt-3">Előadások</h1>
-      <p class="body-md text-on-surface-variant mt-5 max-w-2xl">
-        Szakmai előadásaink célja, hogy hasznos tudást és gyakorlati segítséget nyújtsunk
-        pedagógusoknak és szülőknek a gyermekek fejlődésének támogatásához.
-      </p>
     </div>
   </section>
 
@@ -253,7 +262,7 @@ for (const [id, imgs] of Object.entries(galleries)) {
 
     <div class="mx-auto mt-3 w-full max-w-3xl flex-none">
       <p id="lightbox-counter" class="label-sm mb-2 text-center text-white/70 uppercase"></p>
-      <div id="lightbox-thumbs" class="flex justify-center gap-2 overflow-x-auto pb-1"></div>
+      <div id="lightbox-thumbs" class="no-scrollbar flex justify-center gap-2 overflow-x-auto pb-1"></div>
     </div>
   </div>
 

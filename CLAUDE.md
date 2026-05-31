@@ -143,6 +143,7 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 - **Spacing:** 8px base unit. Section vertical padding: `py-20` (80px) or `py-28` (~112px) for hero. Horizontal page padding: `px-5 md:px-10 lg:px-20`.
 - **Container width:** Use inline `style="max-width: var(--container-max);"` (1200px) on the inner container of each section.
 - **Shadows:** `shadow-ambient` and `shadow-ambient-md` only — these are the tinted low-opacity ambient shadows defined in DESIGN.md.
+- **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the lightbox thumbnail strip in `programs/lectures.astro`).
 
 ### Icons
 
