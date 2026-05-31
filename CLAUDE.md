@@ -148,6 +148,16 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 - **Shadows:** `shadow-ambient` and `shadow-ambient-md` only — these are the tinted low-opacity ambient shadows defined in DESIGN.md.
 - **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the lightbox thumbnail strip in `programs/lectures.astro`).
 
+### Shared layout patterns
+
+Keep these uniform across pages (see `about`, `ivf-program`, `programs/camp` for reference):
+
+- **Section headings:** route section banners through `components/SectionTitle.astro` (heading `headline-lg-mobile md:headline-lg` + leaf divider, centered; optional `subtitle`). Don't hand-roll the heading + leaf-divider markup inline.
+- **Sub-page hero `<h1>`:** `headline-lg-mobile md:headline-lg` (the home hero is the only `md:headline-xl`).
+- **Feature / value / activity grid cards:** white card (`bg-surface-container-lowest shadow-ambient rounded-lg p-6`), centered (`flex flex-col items-center text-center`), with a `size-16` `bg-primary-fixed/50` icon circle holding a `size-8` duotone icon; card title `title-sm text-on-surface` (green is an accent, not the card-title color).
+- **Pull quotes:** `<blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-12 text-center …">` with `quote-lg md:quote-xl`.
+- **Icon sizing:** prefer the `size-*` utility over `h-N w-N`.
+
 ### Icons
 
 Use Phosphor via `astro-icon`. Browse the catalog at <https://phosphoricons.com/>.
