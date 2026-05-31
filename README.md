@@ -43,16 +43,22 @@ src/
   components/
     SectionTitle.astro              # section heading + leaf separator
     Contacts.astro                  # shared contact-cards section
+    GalleryLightbox.astro           # shared full-screen image lightbox (used by lectures + camp)
   pages/                            # file-based routing (lowercase English slugs)
-    index.astro                     # /            — Kezdőlap
-    about.astro                     # /about       — Rólunk
-    programs.astro                  # /programs    — Programok
-    ivf-program.astro               # /ivf-program — Kezdeteket Támogatjuk Lombikprogram
-    support.astro                   # /support     — Támogatás
-    contact.astro                   # /contact     — Kapcsolat
+    index.astro                     # /                  — Kezdőlap
+    about.astro                     # /about             — Rólunk
+    programs.astro                  # /programs          — redirect → /programs/lectures
+    programs/
+      lectures.astro                # /programs/lectures — Előadások (per-event photo galleries)
+      camp.astro                    # /programs/camp     — Kreatív Nyári Tábor 2026
+    ivf-program.astro               # /ivf-program       — Kezdeteket Támogatjuk Lombikprogram
+    support.astro                   # /support           — Támogatás
+    contact.astro                   # /contact           — Kapcsolat
   styles/global.css                 # Tailwind + design tokens
   assets/
     logo.png                        # logo (imported via astro:assets)
+    camp/                           # camp poster
+    lectures/<event-id>/            # per-event lecture photos (auto-collected via import.meta.glob)
     supporters/                     # processed partner logos (transparent PNGs)
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
 public/                             # static files (favicons, robots.txt)

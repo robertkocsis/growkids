@@ -204,6 +204,14 @@
   box-shadow: var(--shadow-ambient-md);
 }
 
+/* Hide the scrollbar but keep the element scrollable (e.g. lightbox thumbnail strip) */
+@utility no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* WebKit */
+  }
+}
+
 /* =============================================================
    Base element styles
    ============================================================= */

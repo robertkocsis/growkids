@@ -56,13 +56,14 @@ src/
   components/
     SectionTitle.astro    # title + leaf-separator block
     Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on / and /ivf-program; accepts optional `id` for anchor links
+    GalleryLightbox.astro # shared full-screen image lightbox (portal-to-body, delegated controls, thumbnails, keyboard nav); auto-hides nav chrome for single-image galleries. Used on /programs/lectures and /programs/camp — see usage contract below
   pages/                   # file-based routing
     index.astro            # /         — Kezdőlap (home)
     about.astro            # /about        — Rólunk
     programs.astro         # /programs     — redirect-only (meta refresh) → /programs/lectures
     programs/
-      lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first, per-lecture photo gallery + lightbox)
-      camp.astro           # /programs/camp     — Tábor 2026 (stub, awaiting content)
+      lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first; each event has an `id`; photos auto-loaded from src/assets/lectures/<id>/ via import.meta.glob; cards show 3 thumbs + "+N", open the shared GalleryLightbox)
+      camp.astro           # /programs/camp     — Kreatív Nyári Tábor 2026 (poster + facts, themed-day cards, Mesevilág closing-day block, price/CTA); poster in src/assets/camp/
     ivf-program.astro      # /ivf-program  — "Kezdeteket Támogatjuk Lombikprogram" (Embryos clinic partner)
     support.astro          # /support      — Támogatás
     contact.astro          # /contact      — Kapcsolat
@@ -71,6 +72,10 @@ src/
     global.css             # Tailwind import + @theme tokens + @utility typography classes
   assets/
     logo.png               # logo (optimized PNG, ~41KB), imported via astro:assets
+    camp/                  # camp page imagery
+      kreativ-nyari-tabor-2026.jpeg  # official poster, shown on /programs/camp
+    lectures/              # per-event photo galleries — one folder per lecture `id`
+      <event-id>/          # drop image files here (sorted by filename) — auto-collected on /programs/lectures
     supporters/            # processed partner logos (transparent PNGs)
       embryos.png          # Embryos — fertility & gynecology clinic
       idea.png             # IDEA Könyvtár
@@ -141,6 +146,7 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 - **Spacing:** 8px base unit. Section vertical padding: `py-20` (80px) or `py-28` (~112px) for hero. Horizontal page padding: `px-5 md:px-10 lg:px-20`.
 - **Container width:** Use inline `style="max-width: var(--container-max);"` (1200px) on the inner container of each section.
 - **Shadows:** `shadow-ambient` and `shadow-ambient-md` only — these are the tinted low-opacity ambient shadows defined in DESIGN.md.
+- **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the lightbox thumbnail strip in `programs/lectures.astro`).
 
 ### Icons
 
@@ -165,11 +171,13 @@ import { Icon } from "astro-icon/components";
 - **Routing:** Lowercase English slugs (`/about`, `/programs`, `/support`, `/contact`) so future localization is straightforward — the visible labels stay Hungarian, only the URL/file names are English. The nav in `Layout.astro` is the source of truth for the page list and active state.
 - **Internal links:** Always go through the `url()` helper in `src/utils/url.ts` (e.g. `href={url("/about")}`), never raw `href="/about"`. The site is deployed under a `base` path on GitHub Pages (`/growkids/`); the helper prepends it. When we switch to the custom domain `growkidsfuture.ro`, removing `base` from `astro.config.mjs` is enough — no link edits required.
 - **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp"` to highlight the open sub-item. Both sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
-- **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`.
+- **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`. For pre-rendering a specific size at build time (e.g. lightbox full-size), use `getImage()` from `astro:assets`.
+- **Image lightbox:** use the shared `components/GalleryLightbox.astro` rather than rolling a new one. Contract: (1) emit a JSON data island `<script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />` where `galleryData` is `Record<string, { src, alt }[]>` keyed by gallery id (use `getImage()` for full-size `src`); (2) add `.gallery-trigger` buttons carrying `data-gallery="<id>"` + `data-index="<n>"`; (3) render `<GalleryLightbox />` once. It auto-hides arrows/counter/thumbnails for single-image galleries.
+- **Full-screen overlays (modals / lightboxes):** `Layout.astro` wraps page content in `<main class="relative z-10">`, which creates a stacking context that sits **below** the `z-30` header. A `position: fixed` overlay rendered inside a page therefore paints under the header and the header steals clicks near the top. Fix: portal the overlay element to `document.body` on load (`document.body.appendChild(el)`) so it escapes `main`'s stacking context — `GalleryLightbox.astro` already does this. Wire overlay controls with a single delegated click handler using `target.closest("#id")` so icon/SVG click targets still resolve to the button.
 - **External links:** Always add `rel="noopener noreferrer"` and `target="_blank"`.
 - **Forms:** No backend yet. Contact form falls back to `mailto:` action. Replace before relying on it.
 - **No hardcoded hex values** in component files — components should consume design tokens (Tailwind utilities backed by `--color-*`).
-- **Keep docs in sync:** Whenever you change anything that the Markdown files describe — adding/removing/renaming a page, changing a design token, changing a convention, changing the stack or build commands — update the relevant `.md` file in the same change. The files to keep current: `CLAUDE.md` (project layout + conventions) and `DESIGN.md` only when the user explicitly asks. Stale docs are worse than no docs.
+- **Keep docs in sync:** Whenever you change anything the docs describe — adding/removing/renaming a page or component, changing a design token, changing a convention, changing the stack or build commands — update **both `CLAUDE.md` (project layout + conventions) and `README.md` (structure + commands + deployment)** in the same change. They overlap, so a structural change usually touches both — check each. `DESIGN.md` only when the user explicitly asks. Stale docs are worse than no docs.
 
 ## Deployment
 

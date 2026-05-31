@@ -1,0 +1,169 @@
+---
+import { Icon } from "astro-icon/components";
+
+// Shared full-screen image gallery lightbox.
+//
+// Contract for any page that uses it:
+//   1. Emit a JSON data island:
+//        <script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />
+//      where galleryData is Record<string, { src: string; alt: string }[]> keyed by gallery id.
+//   2. Add `.gallery-trigger` buttons carrying `data-gallery="<id>"` and `data-index="<n>"`.
+//   3. Render <GalleryLightbox /> once on the page.
+//
+// Arrows / counter / thumbnail strip are hidden automatically for single-image
+// galleries (e.g. a poster).
+---
+
+<div
+  id="lightbox"
+  class="fixed inset-0 z-50 hidden flex-col bg-black/85 p-4 sm:p-6"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Képgaléria"
+>
+  <button
+    type="button"
+    id="lightbox-close"
+    class="absolute top-4 right-4 z-10 flex size-11 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70"
+    aria-label="Bezárás"
+  >
+    <Icon name="ph:x" class="size-6" />
+  </button>
+
+  <div class="relative flex min-h-0 flex-1 items-center justify-center">
+    <button
+      type="button"
+      id="lightbox-prev"
+      class="absolute left-1 flex size-12 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70 sm:left-2"
+      aria-label="Előző kép"
+    >
+      <Icon name="ph:caret-left" class="size-6" />
+    </button>
+    <img id="lightbox-img" src="" alt="" class="max-h-full max-w-full rounded-lg object-contain" />
+    <button
+      type="button"
+      id="lightbox-next"
+      class="absolute right-1 flex size-12 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 backdrop-blur-sm transition hover:bg-black/75 hover:ring-white/70 sm:right-2"
+      aria-label="Következő kép"
+    >
+      <Icon name="ph:caret-right" class="size-6" />
+    </button>
+  </div>
+
+  <div id="lightbox-footer" class="mx-auto mt-3 w-full max-w-3xl flex-none">
+    <p id="lightbox-counter" class="label-sm mb-2 text-center text-white/70 uppercase"></p>
+    <div id="lightbox-thumbs" class="no-scrollbar flex justify-center gap-2 overflow-x-auto pb-1"></div>
+  </div>
+</div>
+
+<script>
+  type GalleryItem = { src: string; alt: string };
+
+  const dataEl = document.getElementById("galleries-data");
+  const galleries: Record<string, GalleryItem[]> = dataEl
+    ? JSON.parse(dataEl.textContent || "{}")
+    : {};
+
+  const lightbox = document.getElementById("lightbox");
+  // Portal the overlay to <body> so it escapes the <main z-10> stacking
+  // context — otherwise the z-30 header paints above it and steals clicks.
+  if (lightbox) document.body.appendChild(lightbox);
+  const img = document.getElementById("lightbox-img") as HTMLImageElement | null;
+  const counter = document.getElementById("lightbox-counter");
+  const thumbs = document.getElementById("lightbox-thumbs");
+  const prevBtn = document.getElementById("lightbox-prev");
+  const nextBtn = document.getElementById("lightbox-next");
+  const footer = document.getElementById("lightbox-footer");
+
+  let current: GalleryItem[] = [];
+  let index = 0;
+
+  const render = () => {
+    if (!img || current.length === 0) return;
+    const item = current[index];
+    img.src = item.src;
+    img.alt = item.alt;
+    if (counter) counter.textContent = `${index + 1} / ${current.length}`;
+    thumbs?.querySelectorAll<HTMLButtonElement>("[data-thumb]").forEach((btn, i) => {
+      const active = i === index;
+      btn.classList.toggle("ring-2", active);
+      btn.classList.toggle("ring-white", active);
+      btn.classList.toggle("opacity-60", !active);
+    });
+  };
+
+  const buildThumbs = () => {
+    if (!thumbs) return;
+    thumbs.innerHTML = "";
+    current.forEach((item, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.thumb = String(i);
+      btn.className =
+        "flex-none overflow-hidden rounded transition hover:opacity-100 focus-visible:outline-none";
+      const t = document.createElement("img");
+      t.src = item.src;
+      t.alt = item.alt;
+      t.className = "h-14 w-20 object-cover";
+      btn.appendChild(t);
+      btn.addEventListener("click", () => {
+        index = i;
+        render();
+      });
+      thumbs.appendChild(btn);
+    });
+  };
+
+  const open = (galleryId: string, startIndex: number) => {
+    const items = galleries[galleryId];
+    if (!lightbox || !items || items.length === 0) return;
+    current = items;
+    index = Math.min(Math.max(startIndex, 0), items.length - 1);
+    // Hide navigation chrome for single-image galleries.
+    const multi = items.length > 1;
+    prevBtn?.classList.toggle("hidden", !multi);
+    nextBtn?.classList.toggle("hidden", !multi);
+    footer?.classList.toggle("hidden", !multi);
+    buildThumbs();
+    render();
+    lightbox.classList.remove("hidden");
+    lightbox.classList.add("flex");
+    document.body.style.overflow = "hidden";
+  };
+
+  const close = () => {
+    if (!lightbox) return;
+    lightbox.classList.add("hidden");
+    lightbox.classList.remove("flex");
+    if (img) img.src = "";
+    document.body.style.overflow = "";
+  };
+
+  const step = (delta: number) => {
+    if (current.length === 0) return;
+    index = (index + delta + current.length) % current.length;
+    render();
+  };
+
+  document.querySelectorAll<HTMLButtonElement>(".gallery-trigger").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      open(btn.dataset.gallery ?? "", Number(btn.dataset.index ?? 0)),
+    );
+  });
+
+  // Single delegated handler on the overlay — robust to icon/SVG click
+  // targets (closest() walks up to the button) and to any DOM re-render.
+  lightbox?.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (target === lightbox) return close(); // backdrop click
+    if (target.closest("#lightbox-close")) return close();
+    if (target.closest("#lightbox-prev")) return step(-1);
+    if (target.closest("#lightbox-next")) return step(1);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (lightbox?.classList.contains("hidden")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  });
+</script>
