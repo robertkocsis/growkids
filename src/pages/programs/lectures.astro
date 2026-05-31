@@ -14,14 +14,18 @@ interface Lecture {
   id: string;
   title: string;
   summary: string;
+  /** Human-readable Hungarian date shown on the card. */
   date: string;
+  /** Machine date (ISO 8601) — drives newest-first sort, the past/upcoming
+   *  badge, and the Event structured data. */
+  dateISO: string;
   location: string[];
   audience: string;
   /** Optional presenter / speaker. */
   presenter?: string;
 }
 
-// New lectures go at the TOP of this array (newest first).
+// Order doesn't matter here — the list is sorted by dateISO (newest first) below.
 const lectures: Lecture[] = [
   {
     id: "tsmt-szuloknek-kraszna-2025",
@@ -29,10 +33,8 @@ const lectures: Lecture[] = [
     summary:
       "Minden, amit a mozgásról és az idegrendszer fejlődéséről tudni érdemes. Mikor áll készen valóban a gyermek az iskolára?",
     date: "2026. május 22. (péntek) 18:00",
-    location: [
-      "Cserey-Goga Technológiai Líceum díszterme",
-      "Kraszna, Szilágy megye",
-    ],
+    dateISO: "2026-05-22T18:00:00+03:00",
+    location: ["Cserey-Goga Technológiai Líceum díszterme", "Kraszna, Szilágy megye"],
     audience: "szülők, érdeklődők",
     presenter: "Simpf-Domokos Orsolya",
   },
@@ -42,14 +44,15 @@ const lectures: Lecture[] = [
     summary:
       "Hogyan segítheti a mozgásterápia – a szenzoros integráció, és ezen belül a TSMT terápia – a gyerekek harmonikus fejlődését, az iskolai beválást és a békés hétköznapokat?",
     date: "2026. április 17. (péntek) 17:00",
-    location: [
-      "Cserey-Goga Technológiai Líceum díszterme",
-      "Kraszna, Szilágy megye",
-    ],
+    dateISO: "2026-04-17T17:00:00+03:00",
+    location: ["Cserey-Goga Technológiai Líceum díszterme", "Kraszna, Szilágy megye"],
     audience: "pedagógusok, szakemberek",
     presenter: "Simpf-Domokos Orsolya",
   },
-];
+].sort((a, b) => b.dateISO.localeCompare(a.dateISO));
+
+// Build-time "now" — the past/upcoming badge reflects the last deploy.
+const now = new Date();
 
 // ── Auto-collect each event's photos from src/assets/lectures/<id>/ ──────────
 // Drop files into the folder named after the lecture id; they appear here,
@@ -66,17 +69,42 @@ for (const path of Object.keys(galleryFiles).sort()) {
   (galleries[id] ??= []).push(galleryFiles[path].default);
 }
 
-// Pre-render large optimized (WebP) versions for the lightbox, keyed by id.
+// Pre-render WebP versions for the lightbox, keyed by id: a large one for the
+// main view and a tiny one for the thumbnail strip (so opening a gallery doesn't
+// download full-resolution images just to render 80px thumbs).
 const titleById = Object.fromEntries(lectures.map((l) => [l.id, l.title]));
-const galleryData: Record<string, { src: string; alt: string }[]> = {};
+const galleryData: Record<string, { src: string; thumb: string; alt: string }[]> = {};
 for (const [id, imgs] of Object.entries(galleries)) {
   galleryData[id] = await Promise.all(
     imgs.map(async (img, i) => ({
       src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+      thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
       alt: `${titleById[id] ?? "Előadás"} – ${i + 1}. kép`,
     })),
   );
 }
+
+// Event structured data (JSON-LD) — rich results once the prod crawl is enabled.
+const eventsJsonLd = lectures.map((l) => ({
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: l.title,
+  description: l.summary,
+  startDate: l.dateISO,
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  eventStatus: "https://schema.org/EventScheduled",
+  location: {
+    "@type": "Place",
+    name: l.location[0],
+    address: l.location.join(", "),
+  },
+  ...(l.presenter ? { performer: { "@type": "Person", name: l.presenter } } : {}),
+  organizer: {
+    "@type": "Organization",
+    name: "GrowKids Future",
+    url: "https://growkidsfuture.ro",
+  },
+}));
 ---
 
 <Layout
@@ -85,6 +113,8 @@ for (const [id, imgs] of Object.entries(galleries)) {
   title="GrowKids Future — Előadások"
   description="Szakmai előadásaink hasznos tudást és gyakorlati segítséget nyújtanak pedagógusoknak és szülőknek a gyermekek fejlődésének támogatásához."
 >
+  <script type="application/ld+json" set:html={JSON.stringify(eventsJsonLd)} />
+
   <!-- ============== Hero ============== -->
   <section class="px-5 pt-10 pb-12 md:px-10 md:pt-14 md:pb-16 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
@@ -101,6 +131,7 @@ for (const [id, imgs] of Object.entries(galleries)) {
           const images = galleries[lecture.id] ?? [];
           const thumbs = images.slice(0, 3);
           const remaining = images.length - thumbs.length;
+          const isPast = new Date(lecture.dateISO) < now;
           return (
             <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
               <div class="flex items-start gap-4">
@@ -108,10 +139,21 @@ for (const [id, imgs] of Object.entries(galleries)) {
                   class="bg-primary-fixed/50 flex size-14 flex-none items-center justify-center rounded-full"
                   aria-hidden="true"
                 >
-                  <Icon name="ph:chalkboard-teacher-duotone" class="text-primary size-7" />
+                  <Icon name="ph:projector-screen-duotone" class="text-primary size-7" />
                 </div>
                 <div>
-                  <h2 class="title-sm md:title-lg text-on-surface">{lecture.title}</h2>
+                  <span
+                    class:list={[
+                      "label-sm inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 uppercase",
+                      isPast
+                        ? "bg-surface-container-high text-on-surface-variant"
+                        : "bg-primary-fixed text-on-primary-fixed-variant",
+                    ]}
+                  >
+                    <Icon name={isPast ? "ph:check-circle" : "ph:calendar-dot"} class="size-4" />
+                    {isPast ? "Lezajlott" : "Közelgő"}
+                  </span>
+                  <h2 class="title-sm md:title-lg text-on-surface mt-2">{lecture.title}</h2>
                   <p class="body-md text-on-surface-variant mt-2">{lecture.summary}</p>
                 </div>
               </div>

@@ -57,7 +57,7 @@ import { Icon } from "astro-icon/components";
 </div>
 
 <script>
-  type GalleryItem = { src: string; alt: string };
+  type GalleryItem = { src: string; thumb?: string; alt: string };
 
   const dataEl = document.getElementById("galleries-data");
   const galleries: Record<string, GalleryItem[]> = dataEl
@@ -74,9 +74,11 @@ import { Icon } from "astro-icon/components";
   const prevBtn = document.getElementById("lightbox-prev");
   const nextBtn = document.getElementById("lightbox-next");
   const footer = document.getElementById("lightbox-footer");
+  const closeBtn = document.getElementById("lightbox-close");
 
   let current: GalleryItem[] = [];
   let index = 0;
+  let lastFocused: HTMLElement | null = null;
 
   const render = () => {
     if (!img || current.length === 0) return;
@@ -102,8 +104,9 @@ import { Icon } from "astro-icon/components";
       btn.className =
         "flex-none overflow-hidden rounded transition hover:opacity-100 focus-visible:outline-none";
       const t = document.createElement("img");
-      t.src = item.src;
+      t.src = item.thumb ?? item.src;
       t.alt = item.alt;
+      t.loading = "lazy";
       t.className = "h-14 w-20 object-cover";
       btn.appendChild(t);
       btn.addEventListener("click", () => {
@@ -129,6 +132,9 @@ import { Icon } from "astro-icon/components";
     lightbox.classList.remove("hidden");
     lightbox.classList.add("flex");
     document.body.style.overflow = "hidden";
+    // Move focus into the dialog for keyboard/screen-reader users.
+    lastFocused = document.activeElement as HTMLElement | null;
+    closeBtn?.focus();
   };
 
   const close = () => {
@@ -137,6 +143,28 @@ import { Icon } from "astro-icon/components";
     lightbox.classList.remove("flex");
     if (img) img.src = "";
     document.body.style.overflow = "";
+    // Return focus to whatever opened the lightbox.
+    lastFocused?.focus();
+    lastFocused = null;
+  };
+
+  // Keep Tab focus inside the dialog while it's open.
+  const trapFocus = (e: KeyboardEvent) => {
+    if (!lightbox || lightbox.classList.contains("hidden") || e.key !== "Tab") return;
+    const focusable = lightbox.querySelectorAll<HTMLElement>(
+      'button:not(.hidden), [href], [tabindex]:not([tabindex="-1"])',
+    );
+    const list = Array.from(focusable).filter((el) => el.offsetParent !== null);
+    if (list.length === 0) return;
+    const first = list[0];
+    const last = list[list.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   };
 
   const step = (delta: number) => {
@@ -165,5 +193,6 @@ import { Icon } from "astro-icon/components";
     if (e.key === "Escape") close();
     if (e.key === "ArrowLeft") step(-1);
     if (e.key === "ArrowRight") step(1);
+    trapFocus(e);
   });
 </script>

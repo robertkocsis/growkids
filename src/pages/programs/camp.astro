@@ -14,6 +14,36 @@ const galleryData: Record<string, { src: string; alt: string }[]> = {
   "camp-poster-2026": [{ src: posterFull.src, alt: "Kreatív Nyári Tábor Krasznán – plakát" }],
 };
 
+// Event structured data (JSON-LD) — rich results once the prod crawl is enabled.
+const eventJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "Kreatív Nyári Tábor Krasznán",
+  description:
+    "Egy hét, ahol a mesék életre kelnek, a kreativitás szárnyra kap. Kézművesség, népi hagyományok, mozgás és természetközeli élmények 6–9 éves gyermekeknek.",
+  startDate: "2026-08-10T08:00:00+03:00",
+  endDate: "2026-08-14T16:00:00+03:00",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  eventStatus: "https://schema.org/EventScheduled",
+  location: {
+    "@type": "Place",
+    name: "Krasznai Falumúzeum",
+    address: "Kraszna, Szilágy megye",
+  },
+  image: [posterFull.src],
+  offers: {
+    "@type": "Offer",
+    price: "490",
+    priceCurrency: "RON",
+    availability: "https://schema.org/InStock",
+  },
+  organizer: {
+    "@type": "Organization",
+    name: "GrowKids Future",
+    url: "https://growkidsfuture.ro",
+  },
+};
+
 const facts = [
   { icon: "ph:calendar-blank", label: "Időpont", value: ["2026. augusztus 10–14."] },
   { icon: "ph:map-pin", label: "Helyszín", value: ["Krasznai Falumúzeum", "Kraszna, Szilágy megye"] },
@@ -52,6 +82,8 @@ const included = [
   title="GrowKids Future — Kreatív Nyári Tábor 2026"
   description="Kreatív Nyári Tábor Krasznán 6–9 éves gyermekeknek, 2026. augusztus 10–14. között a Krasznai Falumúzeumban. Kézművesség, hagyományok, mozgás és természetközeli élmények."
 >
+  <script type="application/ld+json" set:html={JSON.stringify(eventJsonLd)} />
+
   <!-- ============== Hero ============== -->
   <section class="px-5 pt-10 pb-12 md:px-10 md:pt-14 md:pb-16 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
