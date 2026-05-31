@@ -29,7 +29,9 @@ npm run dev      # http://localhost:4321
 | ---------------------- | ----------------------------------------- |
 | `npm install`          | Install dependencies                      |
 | `npm run dev`          | Start dev server on `localhost:4321`      |
-| `npm run build`        | Build static site to `./dist/`            |
+| `npm run build`        | Build static site to `./dist/` (staging)  |
+| `npm run build:staging`| Staging build (GitHub Pages, noindex)     |
+| `npm run build:prod`   | Production build for `growkidsfuture.ro`  |
 | `npm run preview`      | Preview the production build locally      |
 | `npm run check`        | Type-check `.astro` files (no build)      |
 | `npm run format`       | Format the repo with Prettier             |
@@ -63,7 +65,9 @@ src/
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
 public/                             # static files (favicons, robots.txt)
 references/                         # logo source (not served)
-.github/workflows/deploy.yml        # GitHub Pages CI (build + deploy on push to main)
+.github/workflows/
+  deploy.yml                        # GitHub Pages CI (staging — auto on push to main)
+  deploy-prod.yml                   # cPanel CI (prod — manual via Actions tab, FTPS upload)
 DESIGN.md                           # authoritative design system spec
 CLAUDE.md                           # guidance for Claude Code sessions
 ```
@@ -83,46 +87,39 @@ Fonts used (loaded from Google Fonts in `Layout.astro`):
 
 ## Deployment
 
-**Staging on GitHub Pages.** The workflow in `.github/workflows/deploy.yml` builds and publishes `dist/` on every push to `main`. The live URL is `https://robertkocsis.github.io/growkids/`.
+The deploy target is chosen at **build time** via the `DEPLOY_TARGET` env var — one branch, no per-target file edits. `astro.config.mjs` reads it and re-exposes `PUBLIC_IS_PROD` so templates and the `robots.txt` endpoint can branch on it.
 
-This staging deploy is **hidden from search engines** (`Disallow: /` in `public/robots.txt` plus a `noindex,nofollow` meta tag in `Layout.astro`). It's for testing only.
+| Target    | Command                 | Site                               | robots                           | sitemap |
+| --------- | ----------------------- | ---------------------------------- | -------------------------------- | ------- |
+| `staging` | `npm run build:staging` | `robertkocsis.github.io/growkids/` | `Disallow: /` + `<meta noindex>` | —       |
+| `prod`    | `npm run build:prod`    | `growkidsfuture.ro`                | `Allow: /` + sitemap reference   | ✓       |
 
-One-time setup in the GitHub repo: **Settings → Pages → Source → "GitHub Actions"**.
+### Staging — GitHub Pages (automatic)
 
-Promoting to the public domain `growkidsfuture.ro` later — four file edits plus DNS:
+`.github/workflows/deploy.yml` builds with `DEPLOY_TARGET=staging` and publishes on every push to `main`. Live at `https://robertkocsis.github.io/growkids/`, hidden from search engines. One-time repo setup: **Settings → Pages → Source → "GitHub Actions"**.
 
-**`astro.config.mjs`** — switch `site`, drop `base`, re-enable sitemap:
+### Prod — cPanel over FTPS (manual)
 
-```js
-// after `npm i -D @astrojs/sitemap`
-import sitemap from "@astrojs/sitemap";
+`.github/workflows/deploy-prod.yml` builds with `DEPLOY_TARGET=prod` and uploads `dist/` to `public_html/` over FTPS. It's **manual**: trigger it from the repo's **Actions tab → "Deploy to cPanel (prod)" → "Run workflow"**.
 
-export default defineConfig({
-  site: "https://growkidsfuture.ro",
-  integrations: [icon(), sitemap()],
-  vite: { plugins: [tailwindcss()] },
-});
-```
+One-time setup — add these repo secrets under **Settings → Secrets and variables → Actions**:
 
-**`public/robots.txt`** — replace the `Disallow: /` staging version with:
+| Secret     | Value                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `FTP_HOST` | FTP hostname (e.g. `growkidsfuture.ro` or the host's server)  |
+| `FTP_USER` | cPanel / FTP-account username                                 |
+| `FTP_PASS` | that account's password                                       |
 
-```
-User-agent: *
-Allow: /
+Notes:
 
-Sitemap: https://growkidsfuture.ro/sitemap-index.xml
-```
+- The main cPanel account lands in the home dir, so the workflow uploads to `./public_html/`. If you instead create an FTP account scoped to `public_html`, change `server-dir` to `./` in the workflow.
+- `public/.htaccess` ships inside `dist/` and handles HTTPS + canonical-host redirects on the cPanel/Apache side.
+- After the first deploy, point DNS at the host and run **cPanel → SSL/TLS Status → AutoSSL**.
 
-**`src/layouts/Layout.astro`** — delete this line in the `<head>`:
+### Manual / local fallbacks
 
-```astro
-<meta name="robots" content="noindex,nofollow" />
-```
+- **cPanel File Manager:** `npm run build:prod`, then upload the **contents** of `dist/` into `public_html/` (zip + extract).
+- **lftp one-liner** (FTPS mirror): `npm run build:prod && lftp -c "set ftp:ssl-force true; open -u $FTP_USER,$FTP_PASS $FTP_HOST; mirror -R --delete dist/ public_html/"`
+- **Self-host:** `npm run build:prod` then `rsync -avz --delete dist/ user@your-server:/var/www/growkidsfuture/` — no Node runtime is needed at serve time.
 
-**`public/CNAME`** — new file containing exactly `growkidsfuture.ro`.
-
-**DNS** at the registrar: apex A records to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
-
-See [`CLAUDE.md`](./CLAUDE.md) for the same checklist with more context.
-
-Self-host alternative: `npm run build` then `rsync -avz --delete dist/ user@your-server:/var/www/growkidsfuture/` — no Node runtime is required at serve time.
+See [`CLAUDE.md`](./CLAUDE.md) for more context.
