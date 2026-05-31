@@ -112,10 +112,10 @@ const values = [
           class="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:text-left"
         >
           <div
-            class="bg-primary-fixed/60 flex h-20 w-20 flex-none items-center justify-center rounded-full"
+            class="bg-primary-fixed/60 flex size-20 flex-none items-center justify-center rounded-full"
             aria-hidden="true"
           >
-            <Icon name="ph:hand-heart-duotone" class="text-primary h-10 w-10" />
+            <Icon name="ph:hand-heart-duotone" class="text-primary size-10" />
           </div>
 
           <div>
@@ -140,23 +140,19 @@ const values = [
           values.map((v) => (
             <article class="flex flex-col items-center text-center">
               <div
-                class="bg-primary-fixed/50 flex h-20 w-20 items-center justify-center rounded-full"
+                class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
                 aria-hidden="true"
               >
                 {v.icon === "hands" && (
-                  <Icon name="ph:hands-clapping-duotone" class="text-primary h-10 w-10" />
+                  <Icon name="ph:hands-clapping-duotone" class="text-primary size-8" />
                 )}
-                {v.icon === "heart" && (
-                  <Icon name="ph:heart-duotone" class="text-primary h-10 w-10" />
-                )}
-                {v.icon === "sprout" && (
-                  <Icon name="ph:plant-duotone" class="text-primary h-10 w-10" />
-                )}
+                {v.icon === "heart" && <Icon name="ph:heart-duotone" class="text-primary size-8" />}
+                {v.icon === "sprout" && <Icon name="ph:plant-duotone" class="text-primary size-8" />}
                 {v.icon === "people" && (
-                  <Icon name="ph:users-three-duotone" class="text-primary h-10 w-10" />
+                  <Icon name="ph:users-three-duotone" class="text-primary size-8" />
                 )}
               </div>
-              <h3 class="title-sm text-primary mt-6">{v.title}</h3>
+              <h3 class="title-sm text-on-surface mt-6">{v.title}</h3>
               <p class="body-md text-on-surface-variant mt-3">{v.body}</p>
             </article>
           ))

@@ -148,6 +148,16 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 - **Shadows:** `shadow-ambient` and `shadow-ambient-md` only — these are the tinted low-opacity ambient shadows defined in DESIGN.md.
 - **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the lightbox thumbnail strip in `programs/lectures.astro`).
 
+### Shared layout patterns
+
+Keep these uniform across pages (see `about`, `ivf-program`, `programs/camp` for reference):
+
+- **Section headings:** route section banners through `components/SectionTitle.astro` (heading `headline-lg-mobile md:headline-lg` + leaf divider, centered; optional `subtitle`). Don't hand-roll the heading + leaf-divider markup inline.
+- **Sub-page hero `<h1>`:** `headline-lg-mobile md:headline-lg` (the home hero is the only `md:headline-xl`).
+- **Feature / value / activity grid cards:** white card (`bg-surface-container-lowest shadow-ambient rounded-lg p-6`), centered (`flex flex-col items-center text-center`), with a `size-16` `bg-primary-fixed/50` icon circle holding a `size-8` duotone icon; card title `title-sm text-on-surface` (green is an accent, not the card-title color).
+- **Pull quotes:** `<blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-12 text-center …">` with `quote-lg md:quote-xl`.
+- **Icon sizing:** prefer the `size-*` utility over `h-N w-N`.
+
 ### Icons
 
 Use Phosphor via `astro-icon`. Browse the catalog at <https://phosphoricons.com/>.
@@ -172,7 +182,7 @@ import { Icon } from "astro-icon/components";
 - **Internal links:** Always go through the `url()` helper in `src/utils/url.ts` (e.g. `href={url("/about")}`), never raw `href="/about"`. The site is deployed under a `base` path on GitHub Pages (`/growkids/`); the helper prepends it. When we switch to the custom domain `growkidsfuture.ro`, removing `base` from `astro.config.mjs` is enough — no link edits required.
 - **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp"` to highlight the open sub-item. Both sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
 - **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`. For pre-rendering a specific size at build time (e.g. lightbox full-size), use `getImage()` from `astro:assets`.
-- **Image lightbox:** use the shared `components/GalleryLightbox.astro` rather than rolling a new one. Contract: (1) emit a JSON data island `<script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />` where `galleryData` is `Record<string, { src, alt }[]>` keyed by gallery id (use `getImage()` for full-size `src`); (2) add `.gallery-trigger` buttons carrying `data-gallery="<id>"` + `data-index="<n>"`; (3) render `<GalleryLightbox />` once. It auto-hides arrows/counter/thumbnails for single-image galleries.
+- **Image lightbox:** use the shared `components/GalleryLightbox.astro` rather than rolling a new one. Contract: (1) emit a JSON data island `<script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />` where `galleryData` is `Record<string, { src, thumb?, alt }[]>` keyed by gallery id — `src` is the full-size image (use `getImage()` at ~1600px) and the optional `thumb` is a small version (~200px) used by the thumbnail strip so opening a gallery doesn't download full-res images; (2) add `.gallery-trigger` buttons carrying `data-gallery="<id>"` + `data-index="<n>"`; (3) render `<GalleryLightbox />` once. It auto-hides arrows/counter/thumbnails for single-image galleries and handles focus trap + return-focus and keyboard nav (←/→/Esc).
 - **Full-screen overlays (modals / lightboxes):** `Layout.astro` wraps page content in `<main class="relative z-10">`, which creates a stacking context that sits **below** the `z-30` header. A `position: fixed` overlay rendered inside a page therefore paints under the header and the header steals clicks near the top. Fix: portal the overlay element to `document.body` on load (`document.body.appendChild(el)`) so it escapes `main`'s stacking context — `GalleryLightbox.astro` already does this. Wire overlay controls with a single delegated click handler using `target.closest("#id")` so icon/SVG click targets still resolve to the button.
 - **External links:** Always add `rel="noopener noreferrer"` and `target="_blank"`.
 - **Forms:** No backend yet. Contact form falls back to `mailto:` action. Replace before relying on it.

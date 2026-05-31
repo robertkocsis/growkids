@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import GalleryLightbox from "../../components/GalleryLightbox.astro";
+import SectionTitle from "../../components/SectionTitle.astro";
 import { Icon } from "astro-icon/components";
 import { Image, getImage } from "astro:assets";
 import poster from "../../assets/camp/kreativ-nyari-tabor-2026.jpeg";
@@ -12,6 +13,36 @@ const posterFull = await getImage({ src: poster, width: 1400, format: "webp" });
 // is auto-hidden for one-image galleries).
 const galleryData: Record<string, { src: string; alt: string }[]> = {
   "camp-poster-2026": [{ src: posterFull.src, alt: "Kreatív Nyári Tábor Krasznán – plakát" }],
+};
+
+// Event structured data (JSON-LD) — rich results once the prod crawl is enabled.
+const eventJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "Kreatív Nyári Tábor Krasznán",
+  description:
+    "Egy hét, ahol a mesék életre kelnek, a kreativitás szárnyra kap. Kézművesség, népi hagyományok, mozgás és természetközeli élmények 6–9 éves gyermekeknek.",
+  startDate: "2026-08-10T08:00:00+03:00",
+  endDate: "2026-08-14T16:00:00+03:00",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  eventStatus: "https://schema.org/EventScheduled",
+  location: {
+    "@type": "Place",
+    name: "Krasznai Falumúzeum",
+    address: "Kraszna, Szilágy megye",
+  },
+  image: [posterFull.src],
+  offers: {
+    "@type": "Offer",
+    price: "490",
+    priceCurrency: "RON",
+    availability: "https://schema.org/InStock",
+  },
+  organizer: {
+    "@type": "Organization",
+    name: "GrowKids Future",
+    url: "https://growkidsfuture.ro",
+  },
 };
 
 const facts = [
@@ -52,11 +83,13 @@ const included = [
   title="GrowKids Future — Kreatív Nyári Tábor 2026"
   description="Kreatív Nyári Tábor Krasznán 6–9 éves gyermekeknek, 2026. augusztus 10–14. között a Krasznai Falumúzeumban. Kézművesség, hagyományok, mozgás és természetközeli élmények."
 >
+  <script type="application/ld+json" set:html={JSON.stringify(eventJsonLd)} />
+
   <!-- ============== Hero ============== -->
   <section class="px-5 pt-10 pb-12 md:px-10 md:pt-14 md:pb-16 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
       <p class="label-sm text-primary uppercase">Programjaink · Tábor 2026</p>
-      <h1 class="headline-lg-mobile md:headline-xl text-on-surface mt-3">
+      <h1 class="headline-lg-mobile md:headline-lg text-on-surface mt-3">
         Kreatív Nyári Tábor Krasznán
       </h1>
       <p class="quote-lg md:quote-xl text-on-surface-variant mt-5 max-w-2xl">
@@ -135,21 +168,20 @@ const included = [
   <!-- ============== Tematikus napok ============== -->
   <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
-      <h2 class="title-lg md:headline-lg text-on-surface text-center">Mi vár a táborban?</h2>
-      <p class="body-md text-on-surface-variant mx-auto mt-4 max-w-2xl text-center">
-        Tematikus napok, amelyek minden érzéket megmozgatnak és kibontakoztatják a gyerekek
-        kreativitását.
-      </p>
+      <SectionTitle
+        title="Mi vár a táborban?"
+        subtitle="Tematikus napok, amelyek minden érzéket megmozgatnak és kibontakoztatják a gyerekek kreativitását."
+      />
 
       <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {
           activities.map((a) => (
-            <li class="bg-surface-container-lowest shadow-ambient rounded-lg p-6">
+            <li class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
               <div
-                class="bg-primary-fixed/50 flex size-12 items-center justify-center rounded-full"
+                class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
                 aria-hidden="true"
               >
-                <Icon name={a.icon} class="text-primary size-6" />
+                <Icon name={a.icon} class="text-primary size-8" />
               </div>
               <h3 class="title-sm text-on-surface mt-5">{a.title}</h3>
               <p class="body-md text-on-surface-variant mt-2">{a.text}</p>
@@ -220,7 +252,7 @@ const included = [
     >
       <!-- Included -->
       <div>
-        <h2 class="title-lg md:headline-lg text-on-surface">Az ár tartalmazza</h2>
+        <h2 class="headline-lg-mobile md:headline-lg text-on-surface">Az ár tartalmazza</h2>
         <p class="body-md text-on-surface-variant mt-4">
           A részvételi díj a teljes ellátást magában foglalja, hogy a gyerekeknek mindene meglegyen
           egy aktív naphoz.
@@ -269,15 +301,12 @@ const included = [
     </div>
   </section>
 
-  <!-- ============== Closing line ============== -->
-  <section class="px-5 pt-4 pb-24 md:px-10 lg:px-20">
-    <div class="mx-auto text-center" style="max-width: var(--container-max);">
-      <div class="flex items-center justify-center gap-3" aria-hidden="true">
-        <span class="bg-outline-variant h-px w-12"></span>
-        <Icon name="ph:leaf-fill" class="text-primary size-4" />
-        <span class="bg-outline-variant h-px w-12"></span>
-      </div>
-      <p class="quote-lg md:quote-xl text-on-surface mt-6">Egy hét, amelyből emlékek születnek!</p>
+  <!-- ============== Closing quote ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-12 text-center md:px-16 md:py-14">
+        <p class="quote-lg md:quote-xl text-on-surface">Egy hét, amelyből emlékek születnek!</p>
+      </blockquote>
     </div>
   </section>
 
