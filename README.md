@@ -74,6 +74,8 @@ The visual identity is documented in [`DESIGN.md`](./DESIGN.md) — a Material-3
 
 Tokens are translated into Tailwind v4 `@theme` and `@utility` declarations in `src/styles/global.css`. Components should consume those utilities rather than introducing raw hex values.
 
+Shared layout patterns (section headings via `SectionTitle`, sub-page hero scale, feature-card structure, pull-quote band, icon sizing) are documented in [`CLAUDE.md`](./CLAUDE.md#shared-layout-patterns) — keep new pages consistent with them.
+
 Fonts used (loaded from Google Fonts in `Layout.astro`):
 
 - **Newsreader** — headlines
