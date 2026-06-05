@@ -233,7 +233,7 @@ No code edits required.
 `references/rollup/` is a **print design source, not a web page** — kept outside `src/`/`public/` so it's never built or deployed. `rollup.html` is a self-contained recreation of the GrowKids roll-up banner that follows this design system (surface/primary tokens, Newsreader + Manrope, the `SectionTitle` leaf divider, and inline Phosphor service icons — `hand-heart`, `person-arms-spread`, `tent`, `book-open`, plus `globe`/`phone`). It's deliberately framework-free (no Astro/Tailwind) so it opens and exports standalone.
 
 - Tokens are inlined as `:root` CSS variables mirroring `global.css`; keep them in sync if brand colors change.
-- `assets/`: `logo.png` (from `references/logo-original.png`), `photo.jpg` (cropped from `src/assets/ivf-hands.jpeg`), `qr.png` (generated, points to `https://www.growkidsfuture.ro`).
+- `assets/`: `logo.png` (from `references/logo-original.png`), `photo.jpg` (cropped from `src/assets/ivf-hands.jpeg`), `qr.svg` (vector QR → `https://www.growkidsfuture.ro`; inlined into `rollup.html` so the PDF embeds it as vector — the only raster images in the PDF are the photo + logo).
 - A `@media print` block hides the on-screen stand mockup; export with ⌘P or the headless Playwright snippet in `README.md` → `rollup.pdf`. Page is sized to the banner box (aspect ~1 : 2.55).
 
 ## What to leave alone

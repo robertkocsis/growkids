@@ -69,7 +69,7 @@ references/                         # design sources (NOT served / not part of t
   rollup/                           # standalone roll-up banner (self-contained HTML/CSS) — export to PDF for print
     rollup.html                     #   editable banner (brand tokens, Newsreader/Manrope, Phosphor icons)
     rollup.pdf                      #   exported print artifact (banner only, no stand mockup)
-    assets/                         #   logo.png, photo.jpg, qr.png (QR → https://www.growkidsfuture.ro)
+    assets/                         #   logo.png, photo.jpg, qr.svg (vector QR → https://www.growkidsfuture.ro)
 .github/workflows/
   deploy.yml                        # GitHub Pages CI (staging — auto on push to main)
   deploy-prod.yml                   # cPanel CI (prod — manual via Actions tab, FTPS upload)
@@ -98,7 +98,7 @@ Fonts used (loaded from Google Fonts in `Layout.astro`):
 - **Export to PDF:** a `@media print` block hides the on-screen stand mockup and an `@page` rule sizes the output to a single banner page. Just **⌘P → Save as PDF** (enable "Background graphics", margins → None). The committed `rollup.pdf` is the pre-exported result.
 - **Regenerate headless** (optional — needs Playwright, `npm i -D playwright && npx playwright install chromium`): load the file, emulate print media, read the `.banner` box, and `page.pdf({ width, height, printBackground:true, margin:0 })` so the page is sized exactly to the banner.
 
-The QR in the footer is generated to point at `https://www.growkidsfuture.ro` (decode-verified). For large-format print, scale the PDF to the stand's printable area in the print software — keep the aspect ratio (~1 : 2.55).
+The QR in the footer is an inline **vector SVG** (source also at `assets/qr.svg`) pointing at `https://www.growkidsfuture.ro` — decode-verified and resolution-independent, so it stays razor-sharp at any print size. For large-format print, scale the PDF to the stand's printable area in the print software — keep the aspect ratio (~1 : 2.55).
 
 ## Deployment
 
