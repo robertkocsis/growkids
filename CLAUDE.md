@@ -85,7 +85,9 @@ src/
   utils/
     url.ts                 # `url(path)` helper that prefixes internal links with `import.meta.env.BASE_URL` so they survive the base-path switch
 public/                    # static files copied as-is (favicons only)
-references/                # logo master (NOT served; reference only)
+references/                # design sources — NOT served, NOT part of the build
+  logo-original.png        # high-res logo master
+  rollup/                  # standalone roll-up banner (HTML/CSS), export-to-PDF print source — see "Roll-up banner" below
 .github/workflows/
   deploy.yml               # GitHub Pages CI (staging): build + deploy on push to main
   deploy-prod.yml          # cPanel CI (prod): manual (workflow_dispatch), build:prod + FTPS upload to public_html/
@@ -226,8 +228,16 @@ No code edits required.
 
 **GitHub Pages alternative:** add a workflow that exports `DEPLOY_TARGET=prod`, then set apex A records to GitHub's Pages IPs (185.199.108.153, .109.153, .110.153, .111.153). In that case you'd also need to write a `CNAME` file into `dist/` (e.g. `echo growkidsfuture.ro > dist/CNAME` in the workflow) since it's no longer in `build:prod`.
 
+## Roll-up banner (print source)
+
+`references/rollup/` is a **print design source, not a web page** — kept outside `src/`/`public/` so it's never built or deployed. `rollup.html` is a self-contained recreation of the GrowKids roll-up banner that follows this design system (surface/primary tokens, Newsreader + Manrope, the `SectionTitle` leaf divider, and inline Phosphor service icons — `hand-heart`, `person-arms-spread`, `tent`, `book-open`, plus `globe`/`phone`). It's deliberately framework-free (no Astro/Tailwind) so it opens and exports standalone.
+
+- Tokens are inlined as `:root` CSS variables mirroring `global.css`; keep them in sync if brand colors change.
+- `assets/`: `logo.png` (from `references/logo-original.png`), `photo.jpg` (cropped from `src/assets/ivf-hands.jpeg`), `qr.png` (generated, points to `https://www.growkidsfuture.ro`).
+- A `@media print` block hides the on-screen stand mockup; export with ⌘P or the headless Playwright snippet in `README.md` → `rollup.pdf`. Page is sized to the banner box (aspect ~1 : 2.55).
+
 ## What to leave alone
 
-- `references/` — the user's source mockup + logo. Do not move or delete; they're authoritative design references.
+- `references/` — the user's source mockup, logo master, and the `rollup/` print banner. Do not move or delete; they're authoritative design sources.
 - `DESIGN.md` — owned by the user; don't edit without explicit instruction. If you need to change tokens, update `global.css` and explain the mismatch.
 - `astro.config.mjs` — minimal; only touch when adding integrations.

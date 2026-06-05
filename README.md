@@ -64,7 +64,12 @@ src/
     supporters/                     # processed partner logos (transparent PNGs)
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
 public/                             # static files (favicons, robots.txt)
-references/                         # logo source (not served)
+references/                         # design sources (NOT served / not part of the build)
+  logo-original.png                 # high-res logo master
+  rollup/                           # standalone roll-up banner (self-contained HTML/CSS) — export to PDF for print
+    rollup.html                     #   editable banner (brand tokens, Newsreader/Manrope, Phosphor icons)
+    rollup.pdf                      #   exported print artifact (banner only, no stand mockup)
+    assets/                         #   logo.png, photo.jpg, qr.png (QR → https://www.growkidsfuture.ro)
 .github/workflows/
   deploy.yml                        # GitHub Pages CI (staging — auto on push to main)
   deploy-prod.yml                   # cPanel CI (prod — manual via Actions tab, FTPS upload)
@@ -84,6 +89,16 @@ Fonts used (loaded from Google Fonts in `Layout.astro`):
 
 - **Newsreader** — headlines
 - **Manrope** — body and UI
+
+## Roll-up banner (print)
+
+`references/rollup/` holds a **print design source**, not a web page — it's intentionally outside `src/`/`public/` so it's never built or deployed. It recreates the GrowKids roll-up banner in plain HTML/CSS using the same brand system (surface/primary tokens, Newsreader + Manrope, the leaf divider, and inline Phosphor service icons). Everything is editable: text inline, colors via the `:root` variables, images in `rollup/assets/`.
+
+- **Edit / preview:** open `references/rollup/rollup.html` directly in a browser.
+- **Export to PDF:** a `@media print` block hides the on-screen stand mockup and an `@page` rule sizes the output to a single banner page. Just **⌘P → Save as PDF** (enable "Background graphics", margins → None). The committed `rollup.pdf` is the pre-exported result.
+- **Regenerate headless** (optional — needs Playwright, `npm i -D playwright && npx playwright install chromium`): load the file, emulate print media, read the `.banner` box, and `page.pdf({ width, height, printBackground:true, margin:0 })` so the page is sized exactly to the banner.
+
+The QR in the footer is generated to point at `https://www.growkidsfuture.ro` (decode-verified). For large-format print, scale the PDF to the stand's printable area in the print software — keep the aspect ratio (~1 : 2.55).
 
 ## Deployment
 
