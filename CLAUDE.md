@@ -56,7 +56,7 @@ src/
   components/
     SectionTitle.astro    # title + leaf-separator block
     Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on / and /ivf-program; accepts optional `id` for anchor links
-    GalleryLightbox.astro # shared full-screen image lightbox (portal-to-body, delegated controls, thumbnails, keyboard nav); auto-hides nav chrome for single-image galleries. Used on /programs/lectures and /programs/camp — see usage contract below
+    GalleryLightbox.astro # shared full-screen image lightbox (portal-to-body, delegated controls, thumbnails, keyboard nav); auto-hides nav chrome for single-image galleries. Used on /programs/lectures, /programs/camp and /programs/book-club — see usage contract below
   pages/                   # file-based routing
     index.astro            # /         — Kezdőlap (home)
     about.astro            # /about        — Rólunk
@@ -64,6 +64,7 @@ src/
     programs/
       lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first; each event has an `id`; photos auto-loaded from src/assets/lectures/<id>/ via import.meta.glob; cards show 3 thumbs + "+N", open the shared GalleryLightbox)
       camp.astro           # /programs/camp     — Kreatív Nyári Tábor 2026 (poster + facts, themed-day cards, Mesevilág closing-day block, price/CTA); poster in src/assets/camp/
+      book-club.astro      # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér partnership; poster hero + könyvajánló, benefit cards, 3-step ordering, IDEA partner spotlight, Facebook-group CTA → facebook.com/groups/1671592864129569); promo graphics in src/assets/book-club/, both open the shared GalleryLightbox; bottom "Képgaléria" of past events (date + location only) auto-loaded from src/assets/book-club/events/<id>/ via import.meta.glob
     ivf-program.astro      # /ivf-program  — "Kezdeteket Támogatjuk Lombikprogram" (Embryos clinic partner)
     support.astro          # /support      — Támogatás
     contact.astro          # /contact      — Kapcsolat
@@ -74,11 +75,16 @@ src/
     logo.png               # logo (optimized PNG, ~41KB), imported via astro:assets
     camp/                  # camp page imagery
       kreativ-nyari-tabor-2026.jpeg  # official poster, shown on /programs/camp
+    book-club/             # GrowKids Future Könyvklub imagery (shown on /programs/book-club)
+      konyvklub-plakat.jpeg          # main club poster (hero)
+      konyvajanlo-mozgasfejleszto-mesek.jpeg  # sample könyvajánló graphic
+      events/<id>/                   # per-event photo galleries — drop files here (sorted by filename), auto-collected into the bottom "Képgaléria"
     lectures/              # per-event photo galleries — one folder per lecture `id`
       <event-id>/          # drop image files here (sorted by filename) — auto-collected on /programs/lectures
     supporters/            # processed partner logos (transparent PNGs)
       embryos.png          # Embryos — fertility & gynecology clinic
-      idea.png             # IDEA Könyvtár
+      idea.png             # IDEA Könyvtér — stacked raster mark (used in the home Partnerek grid)
+      idea.svg             # IDEA Könyvtér — official horizontal vector logo (sharp at any size; used in the /programs/book-club partner spotlight)
       olecom.png           # OLECOM — construction
       tronterem.png        # Mobila Király — armchair + crown circular mark (filename kept; brand is Mobila Király, mobilakiraly.ro)
       silvafun.png         # silvafun — sun-over-hills mark + wordmark
@@ -183,7 +189,7 @@ import { Icon } from "astro-icon/components";
 - **Language:** All user-facing copy is Hungarian. Variable names, comments, and component names are English.
 - **Routing:** Lowercase English slugs (`/about`, `/programs`, `/support`, `/contact`) so future localization is straightforward — the visible labels stay Hungarian, only the URL/file names are English. The nav in `Layout.astro` is the source of truth for the page list and active state.
 - **Internal links:** Always go through the `url()` helper in `src/utils/url.ts` (e.g. `href={url("/about")}`), never raw `href="/about"`. The site is deployed under a `base` path on GitHub Pages (`/growkids/`); the helper prepends it. When we switch to the custom domain `growkidsfuture.ro`, removing `base` from `astro.config.mjs` is enough — no link edits required.
-- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp"` to highlight the open sub-item. Both sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
+- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp" | "book-club"` to highlight the open sub-item. All sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
 - **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`. For pre-rendering a specific size at build time (e.g. lightbox full-size), use `getImage()` from `astro:assets`.
 - **Image lightbox:** use the shared `components/GalleryLightbox.astro` rather than rolling a new one. Contract: (1) emit a JSON data island `<script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />` where `galleryData` is `Record<string, { src, thumb?, alt }[]>` keyed by gallery id — `src` is the full-size image (use `getImage()` at ~1600px) and the optional `thumb` is a small version (~200px) used by the thumbnail strip so opening a gallery doesn't download full-res images; (2) add `.gallery-trigger` buttons carrying `data-gallery="<id>"` + `data-index="<n>"`; (3) render `<GalleryLightbox />` once. It auto-hides arrows/counter/thumbnails for single-image galleries and handles focus trap + return-focus and keyboard nav (←/→/Esc).
 - **Full-screen overlays (modals / lightboxes):** `Layout.astro` wraps page content in `<main class="relative z-10">`, which creates a stacking context that sits **below** the `z-30` header. A `position: fixed` overlay rendered inside a page therefore paints under the header and the header steals clicks near the top. Fix: portal the overlay element to `document.body` on load (`document.body.appendChild(el)`) so it escapes `main`'s stacking context — `GalleryLightbox.astro` already does this. Wire overlay controls with a single delegated click handler using `target.closest("#id")` so icon/SVG click targets still resolve to the button.

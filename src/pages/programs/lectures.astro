@@ -59,7 +59,7 @@ const now = new Date();
 // sorted by filename, fully optimized by astro:assets.
 const galleryFiles = import.meta.glob<{ default: ImageMetadata }>(
   "../../assets/lectures/*/*.{jpeg,jpg,png,webp,avif}",
-  { eager: true },
+  { eager: true }
 );
 
 const galleries: Record<string, ImageMetadata[]> = {};
@@ -80,7 +80,7 @@ for (const [id, imgs] of Object.entries(galleries)) {
       src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
       thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
       alt: `${titleById[id] ?? "Előadás"} – ${i + 1}. kép`,
-    })),
+    }))
   );
 }
 

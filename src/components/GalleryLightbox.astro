@@ -52,7 +52,12 @@ import { Icon } from "astro-icon/components";
 
   <div id="lightbox-footer" class="mx-auto mt-3 w-full max-w-3xl flex-none">
     <p id="lightbox-counter" class="label-sm mb-2 text-center text-white/70 uppercase"></p>
-    <div id="lightbox-thumbs" class="no-scrollbar flex justify-center gap-2 overflow-x-auto pb-1"></div>
+    <div id="lightbox-thumbs" class="no-scrollbar overflow-x-auto pb-1">
+      <!-- Inner track: mx-auto centers the row when it fits, but stays fully
+           scrollable from the left edge when it overflows (justify-center on a
+           scroll container clips and locks the overflowed ends). -->
+      <div id="lightbox-thumbs-track" class="mx-auto flex w-max gap-2"></div>
+    </div>
   </div>
 </div>
 
@@ -71,6 +76,7 @@ import { Icon } from "astro-icon/components";
   const img = document.getElementById("lightbox-img") as HTMLImageElement | null;
   const counter = document.getElementById("lightbox-counter");
   const thumbs = document.getElementById("lightbox-thumbs");
+  const thumbsTrack = document.getElementById("lightbox-thumbs-track");
   const prevBtn = document.getElementById("lightbox-prev");
   const nextBtn = document.getElementById("lightbox-next");
   const footer = document.getElementById("lightbox-footer");
@@ -86,17 +92,24 @@ import { Icon } from "astro-icon/components";
     img.src = item.src;
     img.alt = item.alt;
     if (counter) counter.textContent = `${index + 1} / ${current.length}`;
+    let activeBtn: HTMLButtonElement | null = null;
     thumbs?.querySelectorAll<HTMLButtonElement>("[data-thumb]").forEach((btn, i) => {
       const active = i === index;
       btn.classList.toggle("ring-2", active);
       btn.classList.toggle("ring-white", active);
       btn.classList.toggle("opacity-60", !active);
+      if (active) activeBtn = btn;
+    });
+    // Keep the current thumbnail visible as you page through a long strip.
+    (activeBtn as HTMLButtonElement | null)?.scrollIntoView({
+      block: "nearest",
+      inline: "center",
     });
   };
 
   const buildThumbs = () => {
-    if (!thumbs) return;
-    thumbs.innerHTML = "";
+    if (!thumbsTrack) return;
+    thumbsTrack.innerHTML = "";
     current.forEach((item, i) => {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -113,7 +126,7 @@ import { Icon } from "astro-icon/components";
         index = i;
         render();
       });
-      thumbs.appendChild(btn);
+      thumbsTrack.appendChild(btn);
     });
   };
 
@@ -152,7 +165,7 @@ import { Icon } from "astro-icon/components";
   const trapFocus = (e: KeyboardEvent) => {
     if (!lightbox || lightbox.classList.contains("hidden") || e.key !== "Tab") return;
     const focusable = lightbox.querySelectorAll<HTMLElement>(
-      'button:not(.hidden), [href], [tabindex]:not([tabindex="-1"])',
+      'button:not(.hidden), [href], [tabindex]:not([tabindex="-1"])'
     );
     const list = Array.from(focusable).filter((el) => el.offsetParent !== null);
     if (list.length === 0) return;
@@ -175,7 +188,7 @@ import { Icon } from "astro-icon/components";
 
   document.querySelectorAll<HTMLButtonElement>(".gallery-trigger").forEach((btn) => {
     btn.addEventListener("click", () =>
-      open(btn.dataset.gallery ?? "", Number(btn.dataset.index ?? 0)),
+      open(btn.dataset.gallery ?? "", Number(btn.dataset.index ?? 0))
     );
   });
 

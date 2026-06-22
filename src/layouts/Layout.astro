@@ -10,7 +10,7 @@ interface Props {
   description?: string;
   active?: "home" | "about" | "programs" | "ivf" | "support" | "contact";
   // Highlights the open item inside the Programok dropdown.
-  programsSub?: "lectures" | "camp";
+  programsSub?: "lectures" | "camp" | "book-club";
 }
 
 const {
@@ -30,6 +30,7 @@ const navItems = [
     children: [
       { key: "lectures", label: "Előadások", href: "/programs/lectures" },
       { key: "camp", label: "Tábor 2026", href: "/programs/camp" },
+      { key: "book-club", label: "Könyvklub", href: "/programs/book-club" },
     ],
   },
   {

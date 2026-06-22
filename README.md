@@ -25,17 +25,17 @@ npm run dev      # http://localhost:4321
 
 ## Commands
 
-| Command                | What it does                              |
-| ---------------------- | ----------------------------------------- |
-| `npm install`          | Install dependencies                      |
-| `npm run dev`          | Start dev server on `localhost:4321`      |
-| `npm run build`        | Build static site to `./dist/` (staging)  |
-| `npm run build:staging`| Staging build (GitHub Pages, noindex)     |
-| `npm run build:prod`   | Production build for `growkidsfuture.ro`  |
-| `npm run preview`      | Preview the production build locally      |
-| `npm run check`        | Type-check `.astro` files (no build)      |
-| `npm run format`       | Format the repo with Prettier             |
-| `npm run format:check` | Verify formatting without writing changes |
+| Command                 | What it does                              |
+| ----------------------- | ----------------------------------------- |
+| `npm install`           | Install dependencies                      |
+| `npm run dev`           | Start dev server on `localhost:4321`      |
+| `npm run build`         | Build static site to `./dist/` (staging)  |
+| `npm run build:staging` | Staging build (GitHub Pages, noindex)     |
+| `npm run build:prod`    | Production build for `growkidsfuture.ro`  |
+| `npm run preview`       | Preview the production build locally      |
+| `npm run check`         | Type-check `.astro` files (no build)      |
+| `npm run format`        | Format the repo with Prettier             |
+| `npm run format:check`  | Verify formatting without writing changes |
 
 ## Project structure
 
@@ -45,7 +45,7 @@ src/
   components/
     SectionTitle.astro              # section heading + leaf separator
     Contacts.astro                  # shared contact-cards section
-    GalleryLightbox.astro           # shared full-screen image lightbox (used by lectures + camp)
+    GalleryLightbox.astro           # shared full-screen image lightbox (used by lectures, camp + book-club)
   pages/                            # file-based routing (lowercase English slugs)
     index.astro                     # /                  — Kezdőlap
     about.astro                     # /about             — Rólunk
@@ -53,6 +53,7 @@ src/
     programs/
       lectures.astro                # /programs/lectures — Előadások (per-event photo galleries)
       camp.astro                    # /programs/camp     — Kreatív Nyári Tábor 2026
+      book-club.astro               # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér)
     ivf-program.astro               # /ivf-program       — Kezdeteket Támogatjuk Lombikprogram
     support.astro                   # /support           — Támogatás
     contact.astro                   # /contact           — Kapcsolat
@@ -60,6 +61,7 @@ src/
   assets/
     logo.png                        # logo (imported via astro:assets)
     camp/                           # camp poster
+    book-club/                      # Könyvklub promo graphics (poster + könyvajánló) + events/<id>/ photo galleries
     lectures/<event-id>/            # per-event lecture photos (auto-collected via import.meta.glob)
     supporters/                     # processed partner logos (transparent PNGs)
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
@@ -119,11 +121,11 @@ The deploy target is chosen at **build time** via the `DEPLOY_TARGET` env var �
 
 One-time setup — add these repo secrets under **Settings → Secrets and variables → Actions**:
 
-| Secret     | Value                                                          |
-| ---------- | ------------------------------------------------------------- |
-| `FTP_HOST` | FTP hostname (e.g. `growkidsfuture.ro` or the host's server)  |
-| `FTP_USER` | cPanel / FTP-account username                                 |
-| `FTP_PASS` | that account's password                                       |
+| Secret     | Value                                                        |
+| ---------- | ------------------------------------------------------------ |
+| `FTP_HOST` | FTP hostname (e.g. `growkidsfuture.ro` or the host's server) |
+| `FTP_USER` | cPanel / FTP-account username                                |
+| `FTP_PASS` | that account's password                                      |
 
 Notes:
 

@@ -1,0 +1,482 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import GalleryLightbox from "../../components/GalleryLightbox.astro";
+import SectionTitle from "../../components/SectionTitle.astro";
+import { Icon } from "astro-icon/components";
+import { Image, getImage } from "astro:assets";
+import ideaLogo from "../../assets/supporters/idea.svg";
+import poster from "../../assets/book-club/konyvklub-plakat.jpeg";
+import bookTip from "../../assets/book-club/konyvajanlo-mozgasfejleszto-mesek.jpeg";
+import type { ImageMetadata } from "astro";
+
+const fbGroup = "https://www.facebook.com/groups/1671592864129569";
+const ideaShop = "https://ideakonyvter.ro/";
+
+// Shared styling for inline "ideakonyvter.ro" links in body copy.
+const ideaLinkClass = "text-primary hover:text-primary-container underline underline-offset-2";
+
+// Both promo graphics share one lightbox gallery so users can swipe between
+// them. Pre-render a large (full view) and a tiny (thumbnail strip) WebP each.
+const galleryImages = [
+  { img: poster, alt: "GrowKids Future Könyvklub – plakát" },
+  { img: bookTip, alt: "Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek" },
+];
+const galleryData: Record<string, { src: string; thumb: string; alt: string }[]> = {
+  "book-club": await Promise.all(
+    galleryImages.map(async ({ img, alt }) => ({
+      src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+      thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
+      alt,
+    }))
+  ),
+};
+
+// What the community offers (feature-card grid).
+const benefits = [
+  {
+    icon: "ph:books-duotone",
+    title: "Értékes könyvajánlók",
+    text: "Inspiráló ajánlókat találsz, hogy mindig legyen kéznél egy jó olvasnivaló.",
+  },
+  {
+    icon: "ph:shopping-bag-open-duotone",
+    title: "Egyszerű könyvrendelés",
+    text: "Kedvező és egyszerű módon juthatsz hozzá a kiszemelt könyvekhez.",
+  },
+  {
+    icon: "ph:chats-circle-duotone",
+    title: "Beszélgetés a könyvekről",
+    text: "Megoszthatjuk egymással az olvasmányélményeinket egy nyitott közösségben.",
+  },
+  {
+    icon: "ph:plant-duotone",
+    title: "Közös fejlődés",
+    text: "Együtt fejlődhetünk egy támogató közösség tagjaként, hónapról hónapra.",
+  },
+];
+
+// How ordering works (numbered steps).
+const steps = [
+  {
+    icon: "ph:megaphone-simple-duotone",
+    title: "Havonta két felhívás",
+    text: "A könyvrendeléseket havonta két alkalommal gyűjtjük össze a csoportban közzétett felhívások alatt.",
+  },
+  {
+    icon: "ph:chat-teardrop-text-duotone",
+    title: "Jelezd kommentben",
+    text: "A felhívás alatt kommentben jelezheted, mely könyve(ke)t szeretnéd megvásárolni az ideakonyvter.ro webáruházából.",
+  },
+  {
+    icon: "ph:package-duotone",
+    title: "Átvétel Krasznán",
+    text: "A megrendelt könyveket Krasznán, a GrowKids Future-nél veheted át – szállítási költség nélkül.",
+  },
+];
+
+// ── Event photo galleries (bottom of page) ──────────────────────────────────
+// Minimal cards: each event shows only its date + location (no summary/audience
+// like the lectures page). Photos live in src/assets/book-club/events/<id>/ and
+// are auto-collected (sorted by filename) — drop files in to add more.
+interface BookClubEvent {
+  id: string;
+  title: string;
+  /** Human-readable Hungarian date shown on the card. */
+  date: string;
+  /** Machine date (ISO 8601) — drives newest-first sort. */
+  dateISO: string;
+  location: string;
+}
+
+const events: BookClubEvent[] = [
+  {
+    id: "csaladi-nap-kraszna-2026",
+    title: "Családi nap",
+    date: "2026. június 20.",
+    dateISO: "2026-06-20",
+    location: "Kraszna",
+  },
+].sort((a, b) => b.dateISO.localeCompare(a.dateISO));
+
+const eventGalleryFiles = import.meta.glob<{ default: ImageMetadata }>(
+  "../../assets/book-club/events/*/*.{jpeg,jpg,png,webp,avif}",
+  { eager: true }
+);
+const eventGalleries: Record<string, ImageMetadata[]> = {};
+for (const path of Object.keys(eventGalleryFiles).sort()) {
+  const id = path.match(/events\/([^/]+)\//)?.[1];
+  if (!id) continue;
+  (eventGalleries[id] ??= []).push(eventGalleryFiles[path].default);
+}
+
+// Add each event's photos to the shared lightbox data (large view + tiny thumb).
+for (const ev of events) {
+  galleryData[ev.id] = await Promise.all(
+    (eventGalleries[ev.id] ?? []).map(async (img, i) => ({
+      src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+      thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
+      alt: `${ev.title} – ${i + 1}. kép`,
+    }))
+  );
+}
+---
+
+<Layout
+  active="programs"
+  programsSub="book-club"
+  title="GrowKids Future — Könyvklub"
+  description="A kolozsvári IDEA Könyvtérrel együttműködve elindítottuk a GrowKids Future Könyvklubot: könyvajánlók, kedvező könyvrendelés és egy támogató olvasóközösség. Csatlakozz a Facebook-csoporthoz!"
+>
+  <!-- ============== Hero ============== -->
+  <section class="px-5 pt-10 pb-12 md:px-10 md:pt-14 md:pb-16 lg:px-20">
+    <div
+      class="mx-auto grid items-center gap-10 lg:grid-cols-2 lg:gap-14"
+      style="max-width: var(--container-max);"
+    >
+      <div>
+        <p class="label-sm text-primary uppercase">Programjaink · Könyvklub</p>
+        <h1 class="headline-lg-mobile md:headline-lg text-on-surface mt-3">
+          GrowKids Future Könyvklub
+        </h1>
+        <p class="quote-lg md:quote-xl text-on-surface-variant mt-5">
+          A kolozsvári IDEA Könyvtérrel együttműködve útjára indítottuk a GrowKids Future
+          Könyvklubot!
+        </p>
+        <p class="body-md text-on-surface-variant mt-5">
+          Örömmel hívunk titeket a most induló közösségünkbe, csatlakozzatok a
+          Facebook-csoportunkhoz!
+        </p>
+
+        <a
+          href={fbGroup}
+          rel="noopener noreferrer"
+          target="_blank"
+          class="bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 transition"
+        >
+          <Icon name="ph:facebook-logo-fill" class="size-5" />
+          <span class="label-sm uppercase">Csatlakozom a csoporthoz</span>
+        </a>
+      </div>
+
+      <button
+        type="button"
+        class="gallery-trigger group focus-visible:ring-primary relative block overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+        data-gallery="book-club"
+        data-index="0"
+        aria-label="A könyvklub plakátja teljes méretben"
+      >
+        <Image
+          src={poster}
+          alt="GrowKids Future Könyvklub – plakát"
+          widths={[400, 600, 800]}
+          sizes="(max-width: 1024px) 90vw, 560px"
+          class="shadow-ambient-md w-full transition group-hover:-translate-y-0.5"
+        />
+        <span
+          class="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100"
+        >
+          <Icon name="ph:magnifying-glass-plus" class="size-4" />
+          <span class="label-sm uppercase">Nagyítás</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============== What the community offers ============== -->
+  <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <SectionTitle
+        title="Mit kínál a közösség?"
+        subtitle="Egy hely, ahol a könyvek köré épül a beszélgetés, az ajánlás és a közös fejlődés."
+      />
+
+      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          benefits.map((b) => (
+            <li class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
+              <div
+                class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <Icon name={b.icon} class="text-primary size-8" />
+              </div>
+              <h3 class="title-sm text-on-surface mt-5">{b.title}</h3>
+              <p class="body-md text-on-surface-variant mt-2">{b.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============== How ordering works ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <SectionTitle
+        title="Hogyan működik a könyvrendelés?"
+        subtitle="Három egyszerű lépés a kiszemelt könyvtől az átvételig."
+      />
+
+      <ol class="mt-12 grid gap-6 md:grid-cols-3">
+        {
+          steps.map((s, i) => (
+            <li class="bg-surface-container-lowest shadow-ambient relative rounded-lg p-6 md:p-8">
+              <span
+                class="label-sm bg-primary text-on-primary absolute -top-3 left-6 flex size-8 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                {i + 1}
+              </span>
+              <div
+                class="bg-primary-fixed/50 flex size-14 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <Icon name={s.icon} class="text-primary size-7" />
+              </div>
+              <h3 class="title-sm text-on-surface mt-5">{s.title}</h3>
+              <p class="body-md text-on-surface-variant mt-2">
+                {s.text.split("ideakonyvter.ro").map((part, idx) => (
+                  <Fragment>
+                    {idx > 0 && (
+                      <a
+                        href={ideaShop}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        class={ideaLinkClass}
+                      >
+                        ideakonyvter.ro
+                      </a>
+                    )}
+                    {part}
+                  </Fragment>
+                ))}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============== Könyvajánló sample ============== -->
+  <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
+    <div
+      class="mx-auto grid items-center gap-10 lg:grid-cols-2 lg:gap-14"
+      style="max-width: var(--container-max);"
+    >
+      <button
+        type="button"
+        class="gallery-trigger group focus-visible:ring-primary relative block overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+        data-gallery="book-club"
+        data-index="1"
+        aria-label="Könyvajánló teljes méretben"
+      >
+        <Image
+          src={bookTip}
+          alt="Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek"
+          widths={[400, 600, 800]}
+          sizes="(max-width: 1024px) 90vw, 560px"
+          class="shadow-ambient-md w-full transition group-hover:-translate-y-0.5"
+        />
+        <span
+          class="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100"
+        >
+          <Icon name="ph:magnifying-glass-plus" class="size-4" />
+          <span class="label-sm uppercase">Nagyítás</span>
+        </span>
+      </button>
+
+      <div>
+        <p class="label-sm text-primary uppercase">Ízelítő</p>
+        <h2 class="headline-lg-mobile md:headline-lg text-on-surface mt-3">
+          Könyvajánlók a közösségben
+        </h2>
+        <p class="body-md text-on-surface-variant mt-5">
+          Hónapról hónapra inspiráló könyvajánlókat osztunk meg a csoportban – mint például a 3–8
+          éveseknek szóló mozgásfejlesztő mesék, amelyek játékosan erősítik a figyelmet, a
+          mozgáskoordinációt és a tanuláshoz szükséges készségeket.
+        </p>
+        <a
+          href={fbGroup}
+          rel="noopener noreferrer"
+          target="_blank"
+          class="text-primary hover:text-primary-container mt-6 inline-flex items-center gap-2"
+        >
+          <Icon name="ph:arrow-right" class="size-5" />
+          <span class="label-sm uppercase">További ajánlók a csoportban</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Partner spotlight — IDEA Könyvtér ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div
+        class="bg-surface-container-low grid items-stretch gap-10 rounded-xl p-8 md:grid-cols-[1fr_1px_1fr] md:gap-x-12 md:gap-y-0 md:p-12"
+      >
+        <div
+          class="flex flex-col items-center justify-center gap-6 text-center md:items-start md:text-left"
+        >
+          <h2 class="title-lg text-on-surface">Együttműködő partnerünk</h2>
+          <a
+            href={ideaShop}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="inline-block transition-opacity hover:opacity-80"
+            aria-label="IDEA Könyvtér — webáruház (új lapon nyílik)"
+          >
+            <Image
+              src={ideaLogo}
+              alt="IDEA Könyvtér logó"
+              class="h-auto w-60 object-contain md:w-72"
+            />
+          </a>
+        </div>
+
+        <div class="bg-outline-variant hidden md:block" aria-hidden="true"></div>
+
+        <div
+          class="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:text-left"
+        >
+          <div
+            class="bg-primary-fixed/60 flex size-16 flex-none items-center justify-center rounded-full"
+            aria-hidden="true"
+          >
+            <Icon name="ph:book-open-text-duotone" class="text-primary size-8" />
+          </div>
+
+          <div>
+            <p class="title-md text-on-surface">A kolozsvári IDEA Könyvtér</p>
+            <p class="body-md text-on-surface-variant mt-3">
+              A könyvklub könyvei az ideakonyvter.ro webáruházból érkeznek. Ez az együttműködés
+              teszi lehetővé, hogy kedvező feltételekkel, közös rendeléssel jussanak el a könyvek
+              minden olvasóhoz.
+            </p>
+            <a
+              href={ideaShop}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="text-primary hover:text-primary-container mt-4 inline-flex items-center gap-2"
+            >
+              <Icon name="ph:arrow-up-right" class="size-5" />
+              <span class="label-sm uppercase">ideakonyvter.ro</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== CTA — join the group ============== -->
+  <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <div class="bg-primary text-on-primary rounded-xl px-6 py-12 text-center md:px-16 md:py-14">
+        <Icon name="ph:users-three-duotone" class="mx-auto size-12" />
+        <h2 class="headline-lg-mobile md:headline-lg mt-4">Szeretettel várunk a könyvklubban!</h2>
+        <p class="body-md text-on-primary/90 mx-auto mt-4 max-w-xl">
+          Csatlakozz a GrowKids Future Könyvklub Facebook-csoportjához, és légy részese egy támogató
+          olvasóközösségnek.
+        </p>
+        <a
+          href={fbGroup}
+          rel="noopener noreferrer"
+          target="_blank"
+          class="bg-on-primary text-primary hover:bg-primary-container hover:text-on-primary-container mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 transition"
+        >
+          <Icon name="ph:facebook-logo-fill" class="size-5" />
+          <span class="label-sm uppercase">Belépek a Facebook-csoportba</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== Event photo gallery ============== -->
+  <section class="px-5 py-20 md:px-10 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <SectionTitle title="Képgaléria" subtitle="Pillanatképek a közösségünk eseményeiről." />
+
+      <div class="mt-12 flex flex-col gap-8">
+        {
+          events.map((event) => {
+            const images = eventGalleries[event.id] ?? [];
+            const thumbs = images.slice(0, 3);
+            const remaining = images.length - thumbs.length;
+            return (
+              <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
+                <div class="flex items-start gap-4">
+                  <div
+                    class="bg-primary-fixed/50 flex size-14 flex-none items-center justify-center rounded-full"
+                    aria-hidden="true"
+                  >
+                    <Icon name="ph:images-duotone" class="text-primary size-7" />
+                  </div>
+                  <div>
+                    <h3 class="title-sm md:title-lg text-on-surface">{event.title}</h3>
+                    <dl class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
+                      <div class="flex items-center gap-2">
+                        <Icon name="ph:calendar-blank" class="text-primary size-5 flex-none" />
+                        <dd class="body-md text-on-surface">{event.date}</dd>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <Icon name="ph:map-pin" class="text-primary size-5 flex-none" />
+                        <dd class="body-md text-on-surface">{event.location}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+
+                {images.length > 0 && (
+                  <>
+                    <ul class="mt-6 grid grid-cols-3 gap-3">
+                      {thumbs.map((img, i) => (
+                        <li>
+                          <button
+                            type="button"
+                            class="gallery-trigger group focus-visible:ring-primary relative block w-full overflow-hidden rounded focus-visible:ring-2 focus-visible:outline-none"
+                            data-gallery={event.id}
+                            data-index={i}
+                            aria-label={`${event.title} – galéria megnyitása`}
+                          >
+                            <Image
+                              src={img}
+                              alt={`${event.title} – ${i + 1}. kép`}
+                              widths={[240, 360, 480]}
+                              sizes="(max-width: 640px) 30vw, 360px"
+                              class="aspect-video w-full object-cover transition group-hover:scale-105"
+                            />
+                            {i === 2 && remaining > 0 && (
+                              <span class="absolute inset-0 flex items-center justify-center bg-black/55 transition group-hover:bg-black/65">
+                                <span class="title-sm text-white">+{remaining}</span>
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      class="gallery-trigger text-primary hover:text-primary-container mt-4 inline-flex items-center gap-2 rounded-full"
+                      data-gallery={event.id}
+                      data-index="0"
+                    >
+                      <Icon name="ph:images" class="size-5" />
+                      <span class="label-sm uppercase">
+                        Galéria megnyitása ({images.length} kép)
+                      </span>
+                    </button>
+                  </>
+                )}
+              </article>
+            );
+          })
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery data for the shared lightbox (id -> [{ src, thumb, alt }]) -->
+  <script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />
+
+  <GalleryLightbox />
+</Layout>
