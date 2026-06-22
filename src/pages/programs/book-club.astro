@@ -397,7 +397,7 @@ for (const ev of events) {
         {
           events.map((event) => {
             const images = eventGalleries[event.id] ?? [];
-            const thumbs = images.slice(0, 3);
+            const thumbs = images.slice(0, 4);
             const remaining = images.length - thumbs.length;
             return (
               <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
@@ -425,12 +425,12 @@ for (const ev of events) {
 
                 {images.length > 0 && (
                   <>
-                    <ul class="mt-6 grid grid-cols-3 gap-3">
+                    <ul class="mt-6 grid grid-cols-2 gap-4">
                       {thumbs.map((img, i) => (
                         <li>
                           <button
                             type="button"
-                            class="gallery-trigger group focus-visible:ring-primary relative block w-full overflow-hidden rounded focus-visible:ring-2 focus-visible:outline-none"
+                            class="gallery-trigger group focus-visible:ring-primary relative block w-full overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                             data-gallery={event.id}
                             data-index={i}
                             aria-label={`${event.title} – galéria megnyitása`}
@@ -438,11 +438,11 @@ for (const ev of events) {
                             <Image
                               src={img}
                               alt={`${event.title} – ${i + 1}. kép`}
-                              widths={[240, 360, 480]}
-                              sizes="(max-width: 640px) 30vw, 360px"
+                              widths={[400, 600, 800, 1120]}
+                              sizes="(max-width: 640px) 45vw, 560px"
                               class="aspect-video w-full object-cover transition group-hover:scale-105"
                             />
-                            {i === 2 && remaining > 0 && (
+                            {i === thumbs.length - 1 && remaining > 0 && (
                               <span class="absolute inset-0 flex items-center justify-center bg-black/55 transition group-hover:bg-black/65">
                                 <span class="title-sm text-white">+{remaining}</span>
                               </span>
