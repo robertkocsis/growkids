@@ -15,20 +15,21 @@ const ideaShop = "https://ideakonyvter.ro/";
 // Shared styling for inline "ideakonyvter.ro" links in body copy.
 const ideaLinkClass = "text-primary hover:text-primary-container underline underline-offset-2";
 
-// Both promo graphics share one lightbox gallery so users can swipe between
-// them. Pre-render a large (full view) and a tiny (thumbnail strip) WebP each.
-const galleryImages = [
-  { img: poster, alt: "GrowKids Future Könyvklub – plakát" },
-  { img: bookTip, alt: "Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek" },
-];
+// The poster and the könyvajánló are unrelated graphics, so each gets its own
+// single-image gallery (GalleryLightbox auto-hides the nav chrome for those) —
+// opening one must not let you swipe to the other. Pre-render a large (full
+// view) and a tiny (thumbnail strip) WebP for every lightbox image.
+const buildEntry = async (img: ImageMetadata, alt: string) => ({
+  src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+  thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
+  alt,
+});
+
 const galleryData: Record<string, { src: string; thumb: string; alt: string }[]> = {
-  "book-club": await Promise.all(
-    galleryImages.map(async ({ img, alt }) => ({
-      src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
-      thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
-      alt,
-    }))
-  ),
+  "book-club-poster": [await buildEntry(poster, "GrowKids Future Könyvklub – plakát")],
+  "book-club-tip": [
+    await buildEntry(bookTip, "Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek"),
+  ],
 };
 
 // What the community offers (feature-card grid).
@@ -112,11 +113,7 @@ for (const path of Object.keys(eventGalleryFiles).sort()) {
 // Add each event's photos to the shared lightbox data (large view + tiny thumb).
 for (const ev of events) {
   galleryData[ev.id] = await Promise.all(
-    (eventGalleries[ev.id] ?? []).map(async (img, i) => ({
-      src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
-      thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
-      alt: `${ev.title} – ${i + 1}. kép`,
-    }))
+    (eventGalleries[ev.id] ?? []).map((img, i) => buildEntry(img, `${ev.title} – ${i + 1}. kép`))
   );
 }
 ---
@@ -161,7 +158,7 @@ for (const ev of events) {
       <button
         type="button"
         class="gallery-trigger group focus-visible:ring-primary relative block overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
-        data-gallery="book-club"
+        data-gallery="book-club-poster"
         data-index="0"
         aria-label="A könyvklub plakátja teljes méretben"
       >
@@ -267,8 +264,8 @@ for (const ev of events) {
       <button
         type="button"
         class="gallery-trigger group focus-visible:ring-primary relative block overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
-        data-gallery="book-club"
-        data-index="1"
+        data-gallery="book-club-tip"
+        data-index="0"
         aria-label="Könyvajánló teljes méretben"
       >
         <Image
