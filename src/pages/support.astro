@@ -1,10 +1,272 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SectionTitle from "../components/SectionTitle.astro";
+import { Icon } from "astro-icon/components";
+
+// Bank details are identical across languages — only the labels/note differ.
+const bank = {
+  beneficiary: "Asociația GrowKids Future",
+  cif: "54972989",
+  iban: "RO92BTRLRONCRT0DF7108601",
+  bankName: "Banca Transilvania",
+};
+
+// Icons for the "what your donation supports" cards — shared by index across
+// both language versions (the four causes are the same in each).
+const contributeIcons = [
+  "ph:hand-heart-duotone",
+  "ph:users-three-duotone",
+  "ph:puzzle-piece-duotone",
+  "ph:chalkboard-teacher-duotone",
+];
+
+interface SupportLang {
+  lang: "hu" | "ro";
+  chip: string;
+  title: string;
+  intro: string[];
+  contributeHeading: string;
+  contributeSubtitle: string;
+  contribute: string[];
+  bankHeading: string;
+  bankSubtitle: string;
+  labels: { beneficiary: string; cif: string; iban: string; bank: string; note: string };
+  note: string;
+  copy: { action: string; done: string };
+  thanks: string;
+}
+
+const langs: SupportLang[] = [
+  {
+    lang: "hu",
+    chip: "Magyar",
+    title: "Támogasd a GrowKids Future munkáját!",
+    intro: [
+      "A GrowKids Future küldetése, hogy támogassa a gyermekvállalásra készülő párokat, erősítse a családokat, valamint segítse a gyermekek terápiás fejlesztését és harmonikus fejlődését.",
+      "Programjainkkal olyan családokat kísérünk, akik gyermekre vágynak, valamint olyan gyermekeket támogatunk, akiknek fejlesztő vagy terápiás segítségre van szükségük. Célunk, hogy minden család megfelelő támogatást kapjon életének fontos szakaszaiban, és minden gyermek megkapja a fejlődéséhez szükséges esélyt.",
+    ],
+    contributeHeading: "Adományoddal hozzájárulsz",
+    contributeSubtitle: "Adományod közvetlenül a következőket teszi lehetővé:",
+    contribute: [
+      "a gyermekvállalásra készülő párok támogatásához;",
+      "a családokat segítő programok megvalósításához;",
+      "gyermekek terápiás és fejlesztő foglalkozásainak támogatásához;",
+      "közösségi és edukációs kezdeményezéseink működéséhez.",
+    ],
+    bankHeading: "Banki átutalás",
+    bankSubtitle: "Adományodat banki átutalással juttathatod el hozzánk az alábbi adatokkal.",
+    labels: {
+      beneficiary: "Kedvezményezett",
+      cif: "CIF",
+      iban: "IBAN",
+      bank: "Bank",
+      note: "Közlemény",
+    },
+    note: "Adomány",
+    copy: { action: "Másolás", done: "Másolva!" },
+    thanks:
+      "Köszönjük, hogy támogatásoddal hozzájárulsz ahhoz, hogy több gyermek, pár és család kapjon reményt, segítséget és valódi támogatást.",
+  },
+  {
+    lang: "ro",
+    chip: "Română",
+    title: "Susține Asociația GrowKids Future!",
+    intro: [
+      "Misiunea Asociației GrowKids Future este de a sprijini cuplurile care își doresc să întemeieze o familie, de a susține și consolida familiile, precum și de a oferi sprijin pentru dezvoltarea terapeutică și armonioasă a copiilor.",
+      "Prin programele noastre, însoțim cuplurile aflate pe drumul către întemeierea unei familii și sprijinim copiii care au nevoie de servicii de dezvoltare și intervenție terapeutică. Ne dorim ca fiecare familie să beneficieze de sprijin în momentele importante ale vieții, iar fiecare copil să aibă șansa de a-și valorifica potențialul.",
+    ],
+    contributeHeading: "Donația ta contribuie la",
+    contributeSubtitle: "Donația ta face posibile în mod direct următoarele:",
+    contribute: [
+      "sprijinirea cuplurilor care își doresc un copil;",
+      "dezvoltarea programelor dedicate familiilor;",
+      "susținerea terapiilor și activităților de dezvoltare pentru copii;",
+      "organizarea proiectelor educaționale și comunitare.",
+    ],
+    bankHeading: "Transfer bancar",
+    bankSubtitle: "Poți face donația prin transfer bancar folosind datele de mai jos.",
+    labels: {
+      beneficiary: "Beneficiar",
+      cif: "CIF",
+      iban: "IBAN",
+      bank: "Bancă",
+      note: "Detalii plată",
+    },
+    note: "Donație",
+    copy: { action: "Copiază", done: "Copiat!" },
+    thanks:
+      "Îți mulțumim că alegi să fii alături de copii, de familii și de cuplurile care își construiesc viitorul cu speranță.",
+  },
+];
+
+// Card-friendly form of the semicolon-separated sentence fragments: drop the
+// trailing separator and capitalize the first letter so each reads as a phrase.
+const asPhrase = (s: string) => {
+  const t = s.replace(/[;.]+\s*$/, "").trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
 ---
 
-<Layout active="support" title="GrowKids Future — Támogatás">
-  <section class="px-5 py-24 md:px-10 md:py-32 lg:px-20">
-    <SectionTitle title="Támogatás" subtitle="Ez az oldal hamarosan elérhető lesz." />
-  </section>
+<Layout
+  active="support"
+  title="GrowKids Future — Támogatás"
+  description="Támogasd a GrowKids Future munkáját! Adományoddal gyermekvállalásra készülő párokat, családokat segítő programokat és gyermekek terápiás fejlesztését támogatod. Banki átutalás adatai magyarul és románul."
+>
+  {
+    langs.map((L, i) => {
+      const isPrimary = i === 0;
+      const TitleTag = isPrimary ? "h1" : "h2";
+      const rows = [
+        { icon: "ph:identification-badge", label: L.labels.beneficiary, value: bank.beneficiary },
+        { icon: "ph:hash", label: L.labels.cif, value: bank.cif },
+        { icon: "ph:credit-card", label: L.labels.iban, value: bank.iban, copy: true },
+        { icon: "ph:bank", label: L.labels.bank, value: bank.bankName },
+        { icon: "ph:note", label: L.labels.note, value: L.note },
+      ];
+      return (
+        <div id={L.lang}>
+          {/* ============== Intro / hero ============== */}
+          <section
+            class:list={[
+              "px-5 md:px-10 lg:px-20",
+              isPrimary
+                ? "pt-10 pb-12 md:pt-14 md:pb-16"
+                : "border-outline-variant border-t pt-16 pb-12 md:pt-20 md:pb-16",
+            ]}
+          >
+            <div class="mx-auto max-w-3xl text-center" style="max-width: 48rem;">
+              <span class="bg-tertiary-fixed text-primary label-sm inline-flex items-center gap-1.5 rounded-full px-3 py-1 uppercase">
+                <Icon name="ph:translate" class="size-4" />
+                {L.chip}
+              </span>
+              <div
+                class="bg-primary-fixed/50 mx-auto mt-6 flex size-16 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <Icon name="ph:hand-heart-duotone" class="text-primary size-8" />
+              </div>
+              <TitleTag class="headline-lg-mobile md:headline-lg text-on-surface mt-6">
+                {L.title}
+              </TitleTag>
+              {L.intro.map((p, pi) => (
+                <p class:list={["body-md text-on-surface-variant", pi === 0 ? "mt-6" : "mt-4"]}>
+                  {p}
+                </p>
+              ))}
+            </div>
+          </section>
+
+          {/* ============== What your donation supports ============== */}
+          <section class="bg-surface-container-low px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <div class="mx-auto" style="max-width: var(--container-max);">
+              <SectionTitle title={L.contributeHeading} subtitle={L.contributeSubtitle} />
+              <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {L.contribute.map((item, ci) => (
+                  <li class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
+                    <div
+                      class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
+                      aria-hidden="true"
+                    >
+                      <Icon name={contributeIcons[ci]} class="text-primary size-8" />
+                    </div>
+                    <p class="title-sm text-on-surface mt-5">{asPhrase(item)}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* ============== Bank transfer details ============== */}
+          <section class="px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <div class="mx-auto" style="max-width: var(--container-max);">
+              <SectionTitle title={L.bankHeading} subtitle={L.bankSubtitle} />
+              <div class="bg-surface-container-lowest shadow-ambient mx-auto mt-12 max-w-2xl rounded-xl p-6 md:p-8">
+                <dl class="divide-outline-variant divide-y">
+                  {rows.map((row) => (
+                    <div class="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
+                      <div
+                        class="bg-primary-fixed/50 flex size-11 flex-none items-center justify-center rounded-full"
+                        aria-hidden="true"
+                      >
+                        <Icon name={row.icon} class="text-primary size-5" />
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <dt class="label-sm text-on-surface-variant uppercase">{row.label}</dt>
+                        <dd
+                          class:list={[
+                            "text-on-surface mt-0.5 select-all",
+                            row.copy ? "title-sm tracking-wide break-all" : "body-md",
+                          ]}
+                        >
+                          {row.value}
+                        </dd>
+                      </div>
+                      {row.copy && (
+                        <button
+                          type="button"
+                          class="iban-copy label-sm text-primary hover:bg-primary-fixed/40 flex flex-none items-center gap-1.5 rounded-full border border-current px-3 py-2 uppercase transition"
+                          data-copy={row.value}
+                          data-action={L.copy.action}
+                          data-done={L.copy.done}
+                          aria-label={`${L.copy.action}: ${row.value}`}
+                        >
+                          <Icon name="ph:copy" class="copy-icon-copy size-4" />
+                          <Icon name="ph:check" class="copy-icon-done hidden size-4" />
+                          <span class="copy-label hidden sm:inline">{L.copy.action}</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          </section>
+
+          {/* ============== Thank-you ============== */}
+          <section class="px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <div class="mx-auto" style="max-width: var(--container-max);">
+              <blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-10 text-center md:px-16 md:py-12">
+                <Icon name="ph:heart-duotone" class="text-primary mx-auto size-10" />
+                <p class="quote-lg md:quote-xl text-on-surface mt-4">{L.thanks}</p>
+              </blockquote>
+            </div>
+          </section>
+        </div>
+      );
+    })
+  }
+
+  <script>
+    // Copy the IBAN (and other bank fields, if extended) to the clipboard, with
+    // brief inline "copied" feedback. Delegated so it survives both language
+    // blocks. Falls back silently if the Clipboard API is unavailable.
+    document.addEventListener("click", async (e) => {
+      const target = e.target as HTMLElement | null;
+      const btn = target?.closest<HTMLButtonElement>(".iban-copy");
+      if (!btn) return;
+
+      const value = btn.dataset.copy ?? "";
+      const label = btn.querySelector<HTMLElement>(".copy-label");
+      const iconCopy = btn.querySelector<HTMLElement>(".copy-icon-copy");
+      const iconDone = btn.querySelector<HTMLElement>(".copy-icon-done");
+      const actionText = btn.dataset.action ?? "";
+      const doneText = btn.dataset.done ?? "";
+
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        return;
+      }
+
+      iconCopy?.classList.add("hidden");
+      iconDone?.classList.remove("hidden");
+      if (label) label.textContent = doneText;
+
+      window.setTimeout(() => {
+        iconCopy?.classList.remove("hidden");
+        iconDone?.classList.add("hidden");
+        if (label) label.textContent = actionText;
+      }, 2000);
+    });
+  </script>
 </Layout>
