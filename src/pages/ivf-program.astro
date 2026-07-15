@@ -1,10 +1,38 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Contacts from "../components/Contacts.astro";
+import SectionTitle from "../components/SectionTitle.astro";
 import { Icon } from "astro-icon/components";
 import { Image } from "astro:assets";
 import callaLogo from "../assets/supporters/calla.png";
 import heroImage from "../assets/ivf-hands.jpeg";
+
+// Facebook group for the new "Erdélyi Termékenységi és Lombikprogram Közösség".
+const communityGroup = "https://www.facebook.com/groups/1569573524898807";
+
+// What members find in the community (feature-card grid).
+const communityBenefits = [
+  {
+    icon: "ph:seal-check-duotone",
+    title: "Megbízható információk",
+    body: "Hiteles tudnivalók a meddőségről és a termékenységi kezelésekről.",
+  },
+  {
+    icon: "ph:chalkboard-teacher-duotone",
+    title: "Szakértői válaszok",
+    body: "Szakemberek hasznos tanácsai és válaszai a felmerülő kérdésekre.",
+  },
+  {
+    icon: "ph:chats-circle-duotone",
+    title: "Sorstársak tapasztalatai",
+    body: "Valódi történetek és megélt tapasztalatok azoktól, akik hasonló úton járnak.",
+  },
+  {
+    icon: "ph:hand-heart-duotone",
+    title: "Elfogadó közösség",
+    body: "Támogatás, megértés és bátorítás egy biztonságos, elfogadó környezetben.",
+  },
+];
 
 const values = [
   {
@@ -128,6 +156,67 @@ const values = [
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== New community — Erdélyi Termékenységi és Lombikprogram Közösség ============== -->
+  <section class="bg-surface-container-low px-5 py-16 md:px-10 md:py-20 lg:px-20">
+    <div class="mx-auto" style="max-width: var(--container-max);">
+      <SectionTitle
+        title="Elindult az Erdélyi Termékenységi és Lombikprogram Közösség!"
+        subtitle="A GrowKids Future Egyesület örömmel mutatja be új közösségét, amely a nagyváradi Calla Központtal (az Embryos hálózat tagja) együttműködésében jött létre."
+      />
+
+      <p class="body-md text-on-surface-variant mx-auto mt-6 max-w-2xl text-center">
+        Hiszünk abban, hogy a meddőséggel küzdő pároknak nemcsak korszerű orvosi ellátásra, hanem
+        egy támogató, elfogadó közösségre is szükségük van. Ezért hoztuk létre ezt a csoportot, ahol
+        biztonságos környezetben, hiteles információkhoz és valódi támogatáshoz juthattok.
+      </p>
+
+      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          communityBenefits.map((b) => (
+            <li class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
+              <div
+                class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <Icon name={b.icon} class="text-primary size-8" />
+              </div>
+              <h3 class="title-sm text-on-surface mt-5">{b.title}</h3>
+              <p class="body-md text-on-surface-variant mt-2">{b.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div
+        class="bg-surface-container-lowest shadow-ambient mx-auto mt-12 max-w-3xl rounded-xl px-6 py-10 text-center md:px-12 md:py-12"
+      >
+        <div
+          class="bg-primary-fixed/60 mx-auto flex size-14 items-center justify-center rounded-full"
+          aria-hidden="true"
+        >
+          <Icon name="ph:hand-heart-duotone" class="text-primary size-7" />
+        </div>
+        <p class="quote-lg text-on-surface mt-6">
+          „Nem vagy egyedül. Együtt könnyebb végigmenni ezen az úton, és együtt erősebbé tehetjük a
+          reményt.”
+        </p>
+        <p class="body-md text-on-surface-variant mt-5">
+          Ha érintett vagy, vagy ismersz valakit, akinek segítséget jelenthet egy ilyen közösség,
+          szeretettel várunk!
+        </p>
+        <a
+          href={communityGroup}
+          rel="noopener noreferrer"
+          target="_blank"
+          class="bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 transition"
+        >
+          <Icon name="ph:facebook-logo-fill" class="size-5" />
+          <span class="label-sm uppercase">Csatlakozom a közösséghez</span>
+        </a>
       </div>
     </div>
   </section>
