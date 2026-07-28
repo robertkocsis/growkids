@@ -55,7 +55,7 @@ src/
     Layout.astro          # shared header (logo + nav) and footer, loads webfonts
   components/
     SectionTitle.astro    # title + leaf-separator block
-    Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on / and /ivf-program; accepts optional `id` for anchor links
+    Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on / and /ivf-program/supporting-beginnings; accepts optional `id` for anchor links
     GalleryLightbox.astro # shared full-screen image lightbox (portal-to-body, delegated controls, thumbnails, keyboard nav); auto-hides nav chrome for single-image galleries. Used on /programs/lectures, /programs/camp and /programs/book-club — see usage contract below
   pages/                   # file-based routing
     index.astro            # /         — Kezdőlap (home)
@@ -65,12 +65,18 @@ src/
       lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first; each event has an `id`; photos auto-loaded from src/assets/lectures/<id>/ via import.meta.glob; cards show 3 thumbs + "+N", open the shared GalleryLightbox)
       camp.astro           # /programs/camp     — Kreatív Nyári Tábor 2026 (poster + facts, themed-day cards, Mesevilág closing-day block, price/CTA); poster in src/assets/camp/
       book-club.astro      # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér partnership; poster hero + könyvajánló, benefit cards, 3-step ordering, IDEA partner spotlight, Facebook-group CTA → facebook.com/groups/1671592864129569); promo graphics in src/assets/book-club/, both open the shared GalleryLightbox; bottom "Képgaléria" of past events (date + location only) auto-loaded from src/assets/book-club/events/<id>/ via import.meta.glob
-    ivf-program.astro      # /ivf-program  — "Kezdeteket Támogatjuk Lombikprogram" (Embryos clinic partner)
+    ivf-program.astro      # /ivf-program  — redirect-only (meta refresh) → /ivf-program/supporting-beginnings
+    ivf-program/
+      supporting-beginnings.astro  # /ivf-program/supporting-beginnings — "Kezdeteket Támogatjuk Lombikprogram" (Calla clinic partner, community section); links across to the national programme
+      national-program.astro       # /ivf-program/national-program — 2026-os Országos Lombikprogram (FIV): announcement hero, GrowKids help + mmuncii.gov.ro cards, key-facts strip, 9 step cards, PDF download
+      national-program-print.astro # noindex A4 print source for public/docs/orszagos-lombikprogram-2026-lepesek.pdf — same data, no nav/footer; regeneration steps in README.md
     support.astro          # /support      — Támogatás
     contact.astro          # /contact      — Kapcsolat
     robots.txt.ts          # static endpoint — emits noindex robots for staging, allow + sitemap for prod
   styles/
     global.css             # Tailwind import + @theme tokens + @utility typography classes
+  data/
+    ivf-national-program.ts  # Országos Lombikprogram copy (steps, key facts, help contact, official link) — single source for the page AND the print route, so the PDF never drifts from the site
   assets/
     logo.png               # logo (optimized PNG, ~41KB), imported via astro:assets
     camp/                  # camp page imagery
@@ -90,7 +96,8 @@ src/
       silvafun.png         # silvafun — sun-over-hills mark + wordmark
   utils/
     url.ts                 # `url(path)` helper that prefixes internal links with `import.meta.env.BASE_URL` so they survive the base-path switch
-public/                    # static files copied as-is (favicons only)
+public/                    # static files copied as-is
+  docs/                    # downloadable PDFs — orszagos-lombikprogram-2026-lepesek.pdf (generated from the print route, not hand-authored)
 references/                # design sources — NOT served, NOT part of the build
   logo-original.png        # high-res logo master
   rollup/                  # standalone roll-up banner (HTML/CSS), export-to-PDF print source — see "Roll-up banner" below
@@ -159,7 +166,7 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 
 ### Shared layout patterns
 
-Keep these uniform across pages (see `about`, `ivf-program`, `programs/camp` for reference):
+Keep these uniform across pages (see `about`, `ivf-program/supporting-beginnings`, `programs/camp` for reference):
 
 - **Section headings:** route section banners through `components/SectionTitle.astro` (heading `headline-lg-mobile md:headline-lg` + leaf divider, centered; optional `subtitle`). Don't hand-roll the heading + leaf-divider markup inline.
 - **Sub-page hero `<h1>`:** `headline-lg-mobile md:headline-lg` (the home hero is the only `md:headline-xl`).
@@ -189,11 +196,13 @@ import { Icon } from "astro-icon/components";
 - **Language:** All user-facing copy is Hungarian. Variable names, comments, and component names are English.
 - **Routing:** Lowercase English slugs (`/about`, `/programs`, `/support`, `/contact`) so future localization is straightforward — the visible labels stay Hungarian, only the URL/file names are English. The nav in `Layout.astro` is the source of truth for the page list and active state.
 - **Internal links:** Always go through the `url()` helper in `src/utils/url.ts` (e.g. `href={url("/about")}`), never raw `href="/about"`. The site is deployed under a `base` path on GitHub Pages (`/growkids/`); the helper prepends it. When we switch to the custom domain `growkidsfuture.ro`, removing `base` from `astro.config.mjs` is enough — no link edits required.
-- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. **Programok** is a dropdown (desktop hover/focus + indented in the mobile `MENÜ`); its children pass `programsSub="lectures" | "camp" | "book-club"` to highlight the open sub-item. All sub-pages use `active="programs"`. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
+- **Active nav state:** Each page passes `active="..."` to `<Layout>`. Keys: `home | about | programs | ivf | support | contact`. Two items are dropdowns (desktop hover/focus + indented in the mobile `MENÜ`): **Programok** (`active="programs"`, children `lectures | camp | book-club`) and **Lombikprogram** (`active="ivf"`, children `supporting-beginnings | national-program`). Sub-pages pass the child key as `sub="..."` to highlight the open item — one prop covers both dropdowns because the child keys are unique. The `navItems` array in `Layout.astro` is the source of truth — add a dropdown child there.
+- **Redirect stubs:** a dropdown parent whose bare path has no page of its own (`/programs`, `/ivf-program`) gets a meta-refresh stub that forwards to its first child, so old links keep working. Stubs are `noindex` and listed in `noindexRoutes` in `astro.config.mjs` so the sitemap skips them.
 - **Images:** Use Astro's `<Image>` component from `astro:assets` for anything in `src/assets/` (gets optimized to WebP automatically). Use `<img>` only for files in `public/`. For pre-rendering a specific size at build time (e.g. lightbox full-size), use `getImage()` from `astro:assets`.
 - **Image lightbox:** use the shared `components/GalleryLightbox.astro` rather than rolling a new one. Contract: (1) emit a JSON data island `<script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />` where `galleryData` is `Record<string, { src, thumb?, alt }[]>` keyed by gallery id — `src` is the full-size image (use `getImage()` at ~1600px) and the optional `thumb` is a small version (~200px) used by the thumbnail strip so opening a gallery doesn't download full-res images; (2) add `.gallery-trigger` buttons carrying `data-gallery="<id>"` + `data-index="<n>"`; (3) render `<GalleryLightbox />` once. It auto-hides arrows/counter/thumbnails for single-image galleries and handles focus trap + return-focus and keyboard nav (←/→/Esc).
 - **Full-screen overlays (modals / lightboxes):** `Layout.astro` wraps page content in `<main class="relative z-10">`, which creates a stacking context that sits **below** the `z-30` header. A `position: fixed` overlay rendered inside a page therefore paints under the header and the header steals clicks near the top. Fix: portal the overlay element to `document.body` on load (`document.body.appendChild(el)`) so it escapes `main`'s stacking context — `GalleryLightbox.astro` already does this. Wire overlay controls with a single delegated click handler using `target.closest("#id")` so icon/SVG click targets still resolve to the button.
 - **External links:** Always add `rel="noopener noreferrer"` and `target="_blank"`.
+- **Downloadable PDFs:** never hand-author a PDF. Keep the copy in a `src/data/*.ts` module, render it from a `noindex` print route (`*-print.astro`) alongside the public page, and generate the file into `public/docs/` with headless Chrome — see the "Országos Lombikprogram — downloadable PDF" section in `README.md`. Editing the data module without regenerating leaves a stale download.
 - **Forms:** No backend yet. Contact form falls back to `mailto:` action. Replace before relying on it.
 - **No hardcoded hex values** in component files — components should consume design tokens (Tailwind utilities backed by `--color-*`).
 - **Keep docs in sync:** Whenever you change anything the docs describe — adding/removing/renaming a page or component, changing a design token, changing a convention, changing the stack or build commands — update **both `CLAUDE.md` (project layout + conventions) and `README.md` (structure + commands + deployment)** in the same change. They overlap, so a structural change usually touches both — check each. `DESIGN.md` only when the user explicitly asks. Stale docs are worse than no docs.
@@ -246,4 +255,4 @@ No code edits required.
 
 - `references/` — the user's source mockup, logo master, and the `rollup/` print banner. Do not move or delete; they're authoritative design sources.
 - `DESIGN.md` — owned by the user; don't edit without explicit instruction. If you need to change tokens, update `global.css` and explain the mismatch.
-- `astro.config.mjs` — minimal; only touch when adding integrations.
+- `astro.config.mjs` — minimal; only touch when adding integrations or when a new route needs to be kept out of the sitemap (`noindexRoutes`).

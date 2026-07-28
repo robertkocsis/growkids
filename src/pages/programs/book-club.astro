@@ -27,9 +27,7 @@ const buildEntry = async (img: ImageMetadata, alt: string) => ({
 
 const galleryData: Record<string, { src: string; thumb: string; alt: string }[]> = {
   "book-club-poster": [await buildEntry(poster, "GrowKids Future Könyvklub – plakát")],
-  "book-club-tip": [
-    await buildEntry(bookTip, "Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek"),
-  ],
+  "book-club-tip": [await buildEntry(bookTip, "Könyvajánló – mozgásfejlesztő mesék 3–8 éveseknek")],
 };
 
 // What the community offers (feature-card grid).
@@ -120,7 +118,7 @@ for (const ev of events) {
 
 <Layout
   active="programs"
-  programsSub="book-club"
+  sub="book-club"
   title="GrowKids Future — Könyvklub"
   description="A kolozsvári IDEA Könyvtérrel együttműködve elindítottuk a GrowKids Future Könyvklubot: könyvajánlók, kedvező könyvrendelés és egy támogató olvasóközösség. Csatlakozz a Facebook-csoporthoz!"
 >

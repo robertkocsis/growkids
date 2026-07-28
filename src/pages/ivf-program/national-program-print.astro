@@ -1,0 +1,138 @@
+---
+/**
+ * Print source for public/docs/orszagos-lombikprogram-2026-lepesek.pdf.
+ *
+ * Not linked from the nav and noindex/no-sitemap — its only job is to be a
+ * clean A4 rendering of the same data the public page shows, so the PDF can be
+ * regenerated with headless Chrome whenever the text changes (see README.md).
+ */
+import "../../styles/global.css";
+import {
+  steps,
+  officialInfoUrl,
+  communityGroupUrl,
+  helpPhone,
+} from "../../data/ivf-national-program";
+---
+
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap"
+    />
+    <title>2026-os Országos Lombikprogram (FIV) — a jelentkezés lépései</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 16mm 15mm 14mm;
+      }
+
+      /* Keep the token-driven backgrounds when Chrome rasterises the page. */
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Never split a step across two pages. */
+      .step {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      @media print {
+        .screen-only {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-surface-container-lowest text-on-surface font-manrope">
+    <div class="mx-auto max-w-[720px] px-8 py-10 print:px-0 print:py-0">
+      <!-- Header -->
+      <header class="border-outline-variant border-b pb-6">
+        <p class="label-sm text-primary uppercase">GrowKids Future Egyesület</p>
+        <h1 class="font-newsreader text-on-surface mt-2 text-[26px] leading-tight font-semibold">
+          2026-os Országos Lombikprogram (FIV)
+        </h1>
+        <p class="title-sm text-primary mt-1">A jelentkezés lépései</p>
+        <p class="body-md text-on-surface-variant mt-4">
+          Ha szeretnének jelentkezni a programba, időben foglaljanak időpontot meddőségi szakorvosi
+          konzultációra. Az orvosi kivizsgálást követően, amennyiben megfelelnek a jogosultsági
+          feltételeknek, megkapják a programba történő jelentkezéshez szükséges igazolást.
+        </p>
+      </header>
+
+      <!-- Steps -->
+      <ol class="mt-8 space-y-6">
+        {
+          steps.map((step, i) => (
+            <li class="step">
+              <h2 class="font-newsreader text-on-surface text-[18px] leading-snug font-semibold">
+                <span class="text-primary">{i + 1}.</span> {step.title}
+              </h2>
+
+              {step.intro && <p class="body-md text-on-surface-variant mt-2">{step.intro}</p>}
+
+              {step.groups?.map((group) => (
+                <div class="mt-2">
+                  {group.intro && <p class="body-md text-on-surface font-medium">{group.intro}</p>}
+                  <ul class="mt-1 space-y-1 pl-5">
+                    {group.bullets.map((bullet) => (
+                      <li class="body-md text-on-surface-variant list-disc">{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              {step.note && (
+                <p class="body-md text-on-surface bg-primary-fixed/40 mt-3 rounded px-3 py-2">
+                  {step.note}
+                </p>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+
+      <!-- Footer / help -->
+      <footer class="border-outline-variant step mt-10 border-t pt-6">
+        <h2 class="font-newsreader text-on-surface text-[18px] leading-snug font-semibold">
+          Segítségre van szükséged?
+        </h2>
+        <p class="body-md text-on-surface-variant mt-2">
+          Amennyiben a programba való beiratkozáshoz bárkinek szüksége van segítségre, keressék
+          bátran a GrowKids csapat tagjait is.
+        </p>
+        <ul class="body-md text-on-surface-variant mt-3 space-y-1">
+          <li><span class="text-on-surface font-medium">Telefon:</span> {helpPhone.display}</li>
+          <li>
+            <span class="text-on-surface font-medium">Közösségi csoport:</span>
+            {communityGroupUrl}
+          </li>
+          <li>
+            <span class="text-on-surface font-medium">Hivatalos információk és dokumentumok:</span>
+            {officialInfoUrl}
+          </li>
+          <li>
+            <span class="text-on-surface font-medium">Weboldal:</span> growkidsfuture.ro
+          </li>
+        </ul>
+        <p class="text-on-surface-variant mt-5 text-xs">
+          Ez az összefoglaló tájékoztató jellegű. A hivatalos feltételek és nyomtatványok a
+          Munkaügyi Minisztérium oldalán érhetők el.
+        </p>
+      </footer>
+
+      <p class="screen-only text-on-surface-variant mt-10 text-center text-xs">
+        Ez az oldal a letölthető PDF nyomdai forrása. Nyomtatás: ⌘P → Mentés PDF-ként.
+      </p>
+    </div>
+  </body>
+</html>

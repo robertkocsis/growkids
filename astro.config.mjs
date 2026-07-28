@@ -17,10 +17,20 @@ import sitemap from "@astrojs/sitemap";
 const isProd = process.env.DEPLOY_TARGET === "prod";
 process.env.PUBLIC_IS_PROD = isProd ? "true" : "";
 
+// Routes that carry <meta robots="noindex"> — redirect stubs for the dropdown
+// parents and the print source behind the Lombikprogram PDF. Listing them in
+// the sitemap would contradict their own robots tag.
+const noindexRoutes = ["/programs", "/ivf-program", "/ivf-program/national-program-print"];
+/** @param {string} page */
+const isIndexable = (page) => {
+  const path = new URL(page).pathname.replace(/\/$/, "");
+  return !noindexRoutes.includes(path);
+};
+
 export default defineConfig({
   site: isProd ? "https://growkidsfuture.ro" : "https://robertkocsis.github.io",
   base: isProd ? undefined : "/growkids",
-  integrations: isProd ? [icon(), sitemap()] : [icon()],
+  integrations: isProd ? [icon(), sitemap({ filter: isIndexable })] : [icon()],
   vite: {
     plugins: [tailwindcss()],
   },

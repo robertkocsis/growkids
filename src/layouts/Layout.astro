@@ -9,15 +9,16 @@ interface Props {
   title?: string;
   description?: string;
   active?: "home" | "about" | "programs" | "ivf" | "support" | "contact";
-  // Highlights the open item inside the Programok dropdown.
-  programsSub?: "lectures" | "camp" | "book-club";
+  // Highlights the open item inside a dropdown (Programok or Lombikprogram).
+  // Child keys are unique across dropdowns, so one prop covers both.
+  sub?: "lectures" | "camp" | "book-club" | "supporting-beginnings" | "national-program";
 }
 
 const {
   title = "GrowKids Future",
   description = "A kezdeteket támogatjuk, a jövőt neveljük.",
   active = "home",
-  programsSub,
+  sub,
 } = Astro.props;
 
 const navItems = [
@@ -35,9 +36,20 @@ const navItems = [
   },
   {
     key: "ivf",
-    label: "Kezdeteket Támogatjuk",
-    label2: "Lombikprogram",
-    href: "/ivf-program",
+    label: "Lombikprogram",
+    href: "/ivf-program/supporting-beginnings",
+    children: [
+      {
+        key: "supporting-beginnings",
+        label: "Kezdeteket Támogatjuk",
+        href: "/ivf-program/supporting-beginnings",
+      },
+      {
+        key: "national-program",
+        label: "Országos Lombikprogram",
+        href: "/ivf-program/national-program",
+      },
+    ],
   },
   { key: "support", label: "Támogatás", href: "/support" },
   { key: "contact", label: "Kapcsolat", href: "/contact" },
@@ -150,7 +162,7 @@ const navItems = [
                               href={url(child.href)}
                               class:list={[
                                 "nav-link hover:bg-surface-container-low block rounded px-3 py-2.5 leading-tight transition-colors",
-                                programsSub === child.key ? "text-primary" : "text-on-surface",
+                                sub === child.key ? "text-primary" : "text-on-surface",
                               ]}
                             >
                               {child.label}
@@ -170,7 +182,6 @@ const navItems = [
                       ]}
                     >
                       {item.label}
-                      {item.label2 && <span class="block">{item.label2}</span>}
                       {active === item.key && (
                         <span
                           class="bg-primary absolute -bottom-2 left-0 h-0.5 w-full"
@@ -207,7 +218,7 @@ const navItems = [
                               href={url(child.href)}
                               class:list={[
                                 "nav-link hover:bg-surface-container-low block rounded px-3 py-2 leading-tight",
-                                programsSub === child.key ? "text-primary" : "text-on-surface",
+                                sub === child.key ? "text-primary" : "text-on-surface",
                               ]}
                             >
                               {child.label}
@@ -226,7 +237,6 @@ const navItems = [
                         ]}
                       >
                         {item.label}
-                        {item.label2 && <span class="block">{item.label2}</span>}
                       </a>
                     </li>
                   )

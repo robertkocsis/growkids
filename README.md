@@ -54,10 +54,16 @@ src/
       lectures.astro                # /programs/lectures — Előadások (per-event photo galleries)
       camp.astro                    # /programs/camp     — Kreatív Nyári Tábor 2026
       book-club.astro               # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér)
-    ivf-program.astro               # /ivf-program       — Kezdeteket Támogatjuk Lombikprogram
+    ivf-program.astro               # /ivf-program       — redirect → /ivf-program/supporting-beginnings
+    ivf-program/
+      supporting-beginnings.astro   # /ivf-program/supporting-beginnings — Kezdeteket Támogatjuk Lombikprogram
+      national-program.astro        # /ivf-program/national-program      — 2026-os Országos Lombikprogram (FIV)
+      national-program-print.astro  # noindex print source → public/docs/*.pdf
     support.astro                   # /support           — Támogatás
     contact.astro                   # /contact           — Kapcsolat
   styles/global.css                 # Tailwind + design tokens
+  data/
+    ivf-national-program.ts         # Országos Lombikprogram copy (shared by the page + the PDF print route)
   assets/
     logo.png                        # logo (imported via astro:assets)
     camp/                           # camp poster
@@ -66,6 +72,7 @@ src/
     supporters/                     # processed partner logos (transparent PNGs)
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
 public/                             # static files (favicons, robots.txt)
+  docs/                             # downloadable PDFs (Országos Lombikprogram steps)
 references/                         # design sources (NOT served / not part of the build)
   logo-original.png                 # high-res logo master
   rollup/                           # standalone roll-up banner (self-contained HTML/CSS) — export to PDF for print
@@ -91,6 +98,29 @@ Fonts used (loaded from Google Fonts in `Layout.astro`):
 
 - **Newsreader** — headlines
 - **Manrope** — body and UI
+
+## Országos Lombikprogram — downloadable PDF
+
+The 9-step application guide on `/ivf-program/national-program` is also offered as a download at `public/docs/orszagos-lombikprogram-2026-lepesek.pdf`. Both come from the same source, `src/data/ivf-national-program.ts`, so the page and the PDF can never drift apart:
+
+- `src/pages/ivf-program/national-program.astro` — the public page (step cards).
+- `src/pages/ivf-program/national-program-print.astro` — an A4 print rendering of the same data. `noindex`, not linked from the nav, and excluded from the sitemap (see `noindexRoutes` in `astro.config.mjs`).
+
+**To change the text:** edit `src/data/ivf-national-program.ts`, then regenerate the PDF — otherwise the download keeps the old wording.
+
+**Regenerate** (build, serve locally, print with headless Chrome):
+
+```bash
+npm run build:prod
+(cd dist && python3 -m http.server 8799 &)
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --disable-gpu --no-pdf-header-footer --virtual-time-budget=8000 \
+  --print-to-pdf="public/docs/orszagos-lombikprogram-2026-lepesek.pdf" \
+  http://localhost:8799/ivf-program/national-program-print/
+npm run build:prod   # re-run so dist/ picks up the new PDF
+```
+
+A local server is needed because the built page references assets by absolute path (`/_astro/…`), which `file://` can't resolve. `--virtual-time-budget` gives the Google Fonts request time to land. Manual alternative: open the print route in a browser and **⌘P → Save as PDF** with "Background graphics" enabled.
 
 ## Roll-up banner (print)
 
