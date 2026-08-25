@@ -4,24 +4,110 @@ import GalleryLightbox from "../../components/GalleryLightbox.astro";
 import SectionTitle from "../../components/SectionTitle.astro";
 import { Icon } from "astro-icon/components";
 import { Image, getImage } from "astro:assets";
-import poster from "../../assets/camp/kreativ-nyari-tabor-2026.jpeg";
+import type { ImageMetadata } from "astro";
+import groupPhoto from "../../assets/camp/tabor-2026-csoportkep.jpeg";
 
-// Full-size optimized poster for the lightbox.
-const posterFull = await getImage({ src: poster, width: 1400, format: "webp" });
+// Pre-render a large (full view) and a tiny (thumbnail strip) WebP for every
+// lightbox image, per the GalleryLightbox contract.
+const buildEntry = async (img: ImageMetadata, alt: string) => ({
+  src: (await getImage({ src: img, width: 1600, format: "webp" })).src,
+  thumb: (await getImage({ src: img, width: 200, format: "webp" })).src,
+  alt,
+});
 
-// Single-image gallery consumed by the shared <GalleryLightbox /> (nav chrome
-// is auto-hidden for one-image galleries).
-const galleryData: Record<string, { src: string; alt: string }[]> = {
-  "camp-poster-2026": [{ src: posterFull.src, alt: "Kreatív Nyári Tábor Krasznán – plakát" }],
+// The closing group photo is a standalone image, so it gets its own gallery
+// (GalleryLightbox auto-hides the nav chrome for single-image galleries).
+const galleryData: Record<string, { src: string; thumb: string; alt: string }[]> = {
+  "camp-group-2026": [
+    await buildEntry(groupPhoto, "Kreatív Nyári Tábor 2026 – közös csoportkép a kézlenyomat-fával"),
+  ],
 };
 
-// Event structured data (JSON-LD) — rich results once the prod crawl is enabled.
+// ── Thematic days ───────────────────────────────────────────────────────────
+// Photos live in src/assets/camp/days/<id>/ and are auto-collected (sorted by
+// filename) — drop files into the matching folder to add more.
+interface CampDay {
+  id: string;
+  /** "1. nap", "Zárónap", … — the badge on the card. */
+  badge: string;
+  title: string;
+  date: string;
+  icon: string;
+}
+
+const days: CampDay[] = [
+  {
+    id: "01-nepi-kincsek",
+    badge: "1. nap",
+    title: "Népi kincsek",
+    date: "2026. augusztus 10.",
+    icon: "ph:flower-lotus-duotone",
+  },
+  {
+    id: "02-epits-es-alkoss",
+    badge: "2. nap",
+    title: "Építs és alkoss",
+    date: "2026. augusztus 11.",
+    icon: "ph:hammer-duotone",
+  },
+  {
+    id: "03-mozgas-es-kaland",
+    badge: "3. nap",
+    title: "Mozgás és kaland",
+    date: "2026. augusztus 12.",
+    icon: "ph:person-simple-run-duotone",
+  },
+  {
+    id: "04-fa-termeszet-elet",
+    badge: "4. nap",
+    title: "Fa. Természet. Élet.",
+    date: "2026. augusztus 13.",
+    icon: "ph:tree-duotone",
+  },
+  {
+    id: "05-mesevilag",
+    badge: "5. nap",
+    title: "Mesevilág",
+    date: "2026. augusztus 14.",
+    icon: "ph:book-open-text-duotone",
+  },
+  {
+    id: "06-zaronap",
+    badge: "Zárónap",
+    title: "Közös ünneplés",
+    date: "2026. augusztus 14.",
+    icon: "ph:confetti-duotone",
+  },
+];
+
+const dayFiles = import.meta.glob<{ default: ImageMetadata }>(
+  "../../assets/camp/days/*/*.{jpeg,jpg,png,webp,avif}",
+  { eager: true }
+);
+
+const dayGalleries: Record<string, ImageMetadata[]> = {};
+for (const path of Object.keys(dayFiles).sort()) {
+  const id = path.match(/days\/([^/]+)\//)?.[1];
+  if (!id) continue;
+  (dayGalleries[id] ??= []).push(dayFiles[path].default);
+}
+
+// Add each day's photos to the shared lightbox data.
+for (const day of days) {
+  galleryData[day.id] = await Promise.all(
+    (dayGalleries[day.id] ?? []).map((img, i) => buildEntry(img, `${day.title} – ${i + 1}. kép`))
+  );
+}
+
+const photoCount = days.reduce((sum, d) => sum + (dayGalleries[d.id]?.length ?? 0), 0);
+
+// Event structured data (JSON-LD) — the 2026 camp as a past event.
 const eventJsonLd = {
   "@context": "https://schema.org",
   "@type": "Event",
   name: "Kreatív Nyári Tábor Krasznán",
   description:
-    "Egy hét, ahol a mesék életre kelnek, a kreativitás szárnyra kap. Kézművesség, népi hagyományok, mozgás és természetközeli élmények 6–9 éves gyermekeknek.",
+    "Kreatív Nyári Tábor 2026 Krasznán 6–9 éves gyermekeknek — öt tematikus nap képgalériája.",
   startDate: "2026-08-10T08:00:00+03:00",
   endDate: "2026-08-14T16:00:00+03:00",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
@@ -31,121 +117,59 @@ const eventJsonLd = {
     name: "Krasznai Falumúzeum",
     address: "Kraszna, Szilágy megye",
   },
-  image: [posterFull.src],
-  offers: {
-    "@type": "Offer",
-    price: "490",
-    priceCurrency: "RON",
-    availability: "https://schema.org/InStock",
-  },
+  image: [galleryData["camp-group-2026"][0].src],
   organizer: {
     "@type": "Organization",
     name: "GrowKids Future",
     url: "https://growkidsfuture.ro",
   },
 };
-
-const facts = [
-  { icon: "ph:calendar-blank", label: "Időpont", value: ["2026. augusztus 10–14."] },
-  {
-    icon: "ph:map-pin",
-    label: "Helyszín",
-    value: ["Krasznai Falumúzeum", "Kraszna, Szilágy megye"],
-  },
-  { icon: "ph:users-three", label: "Korosztály", value: ["6–9 éves gyermekek"] },
-  { icon: "ph:clock", label: "Napi program", value: ["08:00–16:00"] },
-];
-
-const activities = [
-  {
-    icon: "ph:palette-duotone",
-    title: "Kézműves foglalkozások",
-    text: "Alkotás, festés és kézügyesség nap mint nap.",
-  },
-  {
-    icon: "ph:flower-lotus-duotone",
-    title: "Népi kincsek és hagyományok",
-    text: "A helyi értékek és népi örökség felfedezése.",
-  },
-  {
-    icon: "ph:hammer-duotone",
-    title: "Építés és alkotás",
-    text: "Közös építkezés, ötletek életre keltése.",
-  },
-  {
-    icon: "ph:person-simple-run-duotone",
-    title: "Mozgásos játékok és kalandok",
-    text: "Friss levegő, mozgás és sok-sok móka.",
-  },
-  {
-    icon: "ph:plant-duotone",
-    title: "Természetközeli élmények",
-    text: "A természet közelében, szabadban töltött idő.",
-  },
-];
-
-const dailyProgram = [
-  { icon: "ph:translate", label: "Nyelvi játékok" },
-  { icon: "ph:backpack", label: "Iskola-előkészítő foglalkozások" },
-  { icon: "ph:paint-brush", label: "Kreatív műhely" },
-  { icon: "ph:book-open", label: "Mese olvasás" },
-  { icon: "ph:confetti", label: "Sok játék és élmény" },
-];
-
-const included = [
-  { icon: "ph:coffee", label: "Reggeli" },
-  { icon: "ph:fork-knife", label: "Meleg ebéd" },
-  { icon: "ph:cherries", label: "Gyümölcs" },
-  { icon: "ph:cookie", label: "Nasi" },
-  { icon: "ph:drop", label: "Víz" },
-];
 ---
 
 <Layout
   active="programs"
   sub="camp"
   title="GrowKids Future — Kreatív Nyári Tábor 2026"
-  description="Kreatív Nyári Tábor Krasznán 6–9 éves gyermekeknek, 2026. augusztus 10–14. között a Krasznai Falumúzeumban. Kézművesség, hagyományok, mozgás és természetközeli élmények."
+  description="Képgaléria a 2026-os Kreatív Nyári Táborról Krasznán: tematikus napok, kézművesség, népi hagyományok, mozgás és természetközeli élmények."
 >
   <script type="application/ld+json" set:html={JSON.stringify(eventJsonLd)} />
 
-  <!-- ============== Hero ============== -->
+  <!-- ============== Hero: title + closing group photo ============== -->
   <section class="px-5 pt-10 pb-12 md:px-10 md:pt-14 md:pb-16 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
       <p class="label-sm text-primary uppercase">Programjaink · Tábor 2026</p>
       <h1 class="headline-lg-mobile md:headline-lg text-on-surface mt-3">
         Kreatív Nyári Tábor Krasznán
       </h1>
-      <p class="quote-lg md:quote-xl text-on-surface-variant mt-5 max-w-2xl">
-        Egy hét, ahol a mesék életre kelnek, a kreativitás szárnyra kap, és minden nap új kaland
-        vár!
-      </p>
-      <p class="body-md text-on-surface-variant mt-5 max-w-2xl">
-        Szeretettel várjuk a 6–9 éves gyermekeket egy élményekkel teli nyári táborba 2026. augusztus
-        10–14. között a Krasznai Falumúzeumban.
-      </p>
-    </div>
-  </section>
 
-  <!-- ============== Poster + key facts ============== -->
-  <section class="px-5 pb-20 md:px-10 lg:px-20">
-    <div
-      class="mx-auto grid items-start gap-10 lg:grid-cols-[minmax(0,0.9fr)_1fr] lg:gap-14"
-      style="max-width: var(--container-max);"
-    >
+      <ul class="mt-6 flex flex-wrap gap-3">
+        <li
+          class="bg-surface-container-lowest shadow-ambient flex items-center gap-2 rounded-full px-4 py-2"
+        >
+          <Icon name="ph:calendar-blank" class="text-primary size-5" />
+          <span class="body-md text-on-surface">2026. augusztus 10–14.</span>
+        </li>
+        <li
+          class="bg-surface-container-lowest shadow-ambient flex items-center gap-2 rounded-full px-4 py-2"
+        >
+          <Icon name="ph:map-pin" class="text-primary size-5" />
+          <span class="body-md text-on-surface">Krasznai Falumúzeum</span>
+        </li>
+      </ul>
+
       <button
         type="button"
-        class="gallery-trigger group focus-visible:ring-primary relative block overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
-        data-gallery="camp-poster-2026"
+        class="gallery-trigger group focus-visible:ring-primary relative mt-8 block w-full overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:outline-none"
+        data-gallery="camp-group-2026"
         data-index="0"
-        aria-label="A tábor plakátja teljes méretben"
+        aria-label="A tábor csoportképe teljes méretben"
       >
         <Image
-          src={poster}
-          alt="Kreatív Nyári Tábor Krasznán – plakát"
-          widths={[400, 600, 800]}
-          sizes="(max-width: 1024px) 90vw, 480px"
-          class="shadow-ambient-md w-full transition group-hover:-translate-y-0.5"
+          src={groupPhoto}
+          alt="Kreatív Nyári Tábor 2026 – közös csoportkép a kézlenyomat-fával"
+          widths={[600, 900, 1200, 1600]}
+          sizes="(max-width: 1200px) 100vw, 1200px"
+          class="shadow-ambient-md w-full"
         />
         <span
           class="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100"
@@ -154,188 +178,98 @@ const included = [
           <span class="label-sm uppercase">Nagyítás</span>
         </span>
       </button>
-
-      <div>
-        <dl class="grid gap-5 sm:grid-cols-2">
-          {
-            facts.map((f) => (
-              <div class="bg-surface-container-lowest shadow-ambient flex items-start gap-3 rounded-lg p-5">
-                <div
-                  class="bg-primary-fixed/50 flex size-11 flex-none items-center justify-center rounded-full"
-                  aria-hidden="true"
-                >
-                  <Icon name={f.icon} class="text-primary size-5" />
-                </div>
-                <div>
-                  <dt class="label-sm text-on-surface-variant uppercase">{f.label}</dt>
-                  <dd class="body-md text-on-surface mt-1">
-                    {f.value.map((line) => (
-                      <span class="block">{line}</span>
-                    ))}
-                  </dd>
-                </div>
-              </div>
-            ))
-          }
-        </dl>
-
-        <div class="bg-tertiary-container/50 mt-6 flex items-start gap-3 rounded-lg p-5">
-          <Icon name="ph:sun-duotone" class="text-tertiary mt-0.5 size-6 flex-none" />
-          <p class="body-md text-on-surface-variant">
-            Minden nap kézműves foglalkozások, népi hagyományok, mozgásos kalandok és
-            természetközeli élmények várják a gyerekeket – egy hét, amelyből emlékek születnek.
-          </p>
-        </div>
-      </div>
     </div>
   </section>
 
-  <!-- ============== Tematikus napok ============== -->
+  <!-- ============== Képgaléria – tematikus napok ============== -->
   <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
     <div class="mx-auto" style="max-width: var(--container-max);">
       <SectionTitle
-        title="Mi vár a táborban?"
-        subtitle="Tematikus napok, amelyek minden érzéket megmozgatnak és kibontakoztatják a gyerekek kreativitását."
+        title="Képgaléria"
+        subtitle={`Pillanatképek a tábor tematikus napjairól – összesen ${photoCount} kép.`}
       />
 
-      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="mt-12 flex flex-col gap-8">
         {
-          activities.map((a) => (
-            <li class="bg-surface-container-lowest shadow-ambient flex flex-col items-center rounded-lg p-6 text-center">
-              <div
-                class="bg-primary-fixed/50 flex size-16 items-center justify-center rounded-full"
-                aria-hidden="true"
-              >
-                <Icon name={a.icon} class="text-primary size-8" />
-              </div>
-              <h3 class="title-sm text-on-surface mt-5">{a.title}</h3>
-              <p class="body-md text-on-surface-variant mt-2">{a.text}</p>
-            </li>
-          ))
-        }
-      </ul>
-
-      <div class="mx-auto mt-12 max-w-3xl text-center">
-        <p class="label-sm text-on-surface-variant uppercase">Minden napunk része</p>
-        <ul class="mt-5 flex flex-wrap justify-center gap-3">
-          {
-            dailyProgram.map((d) => (
-              <li class="bg-surface-container-lowest shadow-ambient flex items-center gap-2 rounded-full px-4 py-2">
-                <Icon name={d.icon} class="text-primary size-5" />
-                <span class="body-md text-on-surface">{d.label}</span>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============== MESEVILÁG – special closing day ============== -->
-  <section class="px-5 py-20 md:px-10 lg:px-20">
-    <div class="mx-auto" style="max-width: var(--container-max);">
-      <div class="bg-primary-container rounded-xl p-8 md:p-12">
-        <div class="flex items-center gap-2">
-          <Icon name="ph:sparkle-fill" class="text-primary size-5" />
-          <p class="label-sm text-on-primary-container uppercase">Különleges zárónapunk</p>
-        </div>
-        <h2 class="headline-lg-mobile md:headline-lg text-on-primary-container mt-3">Mesevilág</h2>
-        <p class="body-md text-on-primary-container/90 mt-4 max-w-2xl">
-          Vendégünk <strong>Kovács Réka</strong>, aki mesekönyv-bemutatóval, dedikálással és kreatív
-          foglalkozásokkal várja a gyerekeket. A programot faültetés és közös családi élmények
-          teszik teljessé.
-        </p>
-
-        <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {
-            [
-              { icon: "ph:book-open-text", label: "Mesekönyv-bemutató Kovács Rékával" },
-              { icon: "ph:pen-nib", label: "Dedikálás" },
-              { icon: "ph:palette", label: "Kreatív foglalkozás" },
-              { icon: "ph:person-simple-run", label: "Mozgásos programok" },
-              { icon: "ph:tree", label: "Faültetés" },
-              { icon: "ph:users-three", label: "Közös családi program" },
-            ].map((item) => (
-              <li class="flex items-center gap-3">
-                <div class="bg-surface-container-lowest/70 flex size-10 flex-none items-center justify-center rounded-full">
-                  <Icon name={item.icon} class="text-primary size-5" />
+          days.map((day) => {
+            const images = dayGalleries[day.id] ?? [];
+            const thumbs = images.slice(0, 6);
+            const remaining = images.length - thumbs.length;
+            return (
+              <article class="bg-surface-container-lowest shadow-ambient rounded-lg p-6 md:p-10">
+                <div class="flex items-start gap-4">
+                  <div
+                    class="bg-primary-fixed/50 flex size-14 flex-none items-center justify-center rounded-full"
+                    aria-hidden="true"
+                  >
+                    <Icon name={day.icon} class="text-primary size-7" />
+                  </div>
+                  <div>
+                    <p class="label-sm text-primary uppercase">{day.badge}</p>
+                    <h3 class="title-sm md:title-lg text-on-surface mt-1">{day.title}</h3>
+                    <dl class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
+                      <div class="flex items-center gap-2">
+                        <Icon name="ph:calendar-blank" class="text-primary size-5 flex-none" />
+                        <dd class="body-md text-on-surface">{day.date}</dd>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <Icon name="ph:images" class="text-primary size-5 flex-none" />
+                        <dd class="body-md text-on-surface">{images.length} kép</dd>
+                      </div>
+                    </dl>
+                  </div>
                 </div>
-                <span class="body-md text-on-primary-container">{item.label}</span>
-              </li>
-            ))
-          }
-        </ul>
+
+                {images.length > 0 && (
+                  <>
+                    <ul class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                      {thumbs.map((img, i) => (
+                        <li>
+                          <button
+                            type="button"
+                            class="gallery-trigger group focus-visible:ring-primary relative block w-full overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+                            data-gallery={day.id}
+                            data-index={i}
+                            aria-label={`${day.title} – galéria megnyitása`}
+                          >
+                            <Image
+                              src={img}
+                              alt={`${day.title} – ${i + 1}. kép`}
+                              widths={[300, 450, 600]}
+                              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 340px"
+                              class="aspect-square w-full object-cover transition group-hover:scale-105"
+                            />
+                            {i === thumbs.length - 1 && remaining > 0 && (
+                              <span class="absolute inset-0 flex items-center justify-center bg-black/55 transition group-hover:bg-black/65">
+                                <span class="title-sm text-white">+{remaining}</span>
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      class="gallery-trigger text-primary hover:text-primary-container mt-4 inline-flex items-center gap-2 rounded-full"
+                      data-gallery={day.id}
+                      data-index="0"
+                    >
+                      <Icon name="ph:images" class="size-5" />
+                      <span class="label-sm uppercase">
+                        Galéria megnyitása ({images.length} kép)
+                      </span>
+                    </button>
+                  </>
+                )}
+              </article>
+            );
+          })
+        }
       </div>
     </div>
   </section>
 
-  <!-- ============== Price + included + CTA ============== -->
-  <section class="bg-surface-container-low px-5 py-20 md:px-10 lg:px-20">
-    <div
-      class="mx-auto grid gap-10 lg:grid-cols-2 lg:items-center"
-      style="max-width: var(--container-max);"
-    >
-      <!-- Included -->
-      <div>
-        <h2 class="headline-lg-mobile md:headline-lg text-on-surface">Az ár tartalmazza</h2>
-        <p class="body-md text-on-surface-variant mt-4">
-          A részvételi díj a teljes ellátást magában foglalja, hogy a gyerekeknek mindene meglegyen
-          egy aktív naphoz.
-        </p>
-        <ul class="mt-6 flex flex-wrap gap-3">
-          {
-            included.map((i) => (
-              <li class="bg-surface-container-lowest shadow-ambient flex items-center gap-2 rounded-full px-4 py-2">
-                <Icon name={i.icon} class="text-tertiary size-5" />
-                <span class="body-md text-on-surface">{i.label}</span>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-
-      <!-- Price + CTA -->
-      <div class="bg-primary text-on-primary rounded-xl p-8 md:p-10">
-        <p class="label-sm text-on-primary/80 uppercase">Részvételi díj</p>
-        <div class="mt-2 flex items-baseline gap-2">
-          <span class="display-md md:display-lg">490 lej</span>
-          <span class="body-md text-on-primary/80">/ gyerek</span>
-        </div>
-
-        <dl class="border-on-primary/20 mt-6 space-y-3 border-t pt-6">
-          <div class="flex items-center gap-3">
-            <Icon name="ph:users-three" class="size-5 flex-none" />
-            <dt class="body-md text-on-primary/80">Testvérkedvezmény</dt>
-            <dd class="body-md ml-auto font-semibold">−40 lej</dd>
-          </div>
-          <div class="flex items-center gap-3">
-            <Icon name="ph:calendar-check" class="size-5 flex-none" />
-            <dt class="body-md text-on-primary/80">Jelentkezési határidő</dt>
-            <dd class="body-md ml-auto font-semibold">augusztus 1.</dd>
-          </div>
-        </dl>
-
-        <a
-          href="tel:+40754038984"
-          class="bg-on-primary text-primary hover:bg-primary-container hover:text-on-primary-container mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 transition"
-        >
-          <Icon name="ph:phone-fill" class="size-5" />
-          <span class="label-sm uppercase">Jelentkezés: +40 754 038 984</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============== Closing quote ============== -->
-  <section class="px-5 py-20 md:px-10 lg:px-20">
-    <div class="mx-auto" style="max-width: var(--container-max);">
-      <blockquote class="bg-primary-fixed/40 rounded-xl px-6 py-12 text-center md:px-16 md:py-14">
-        <p class="quote-lg md:quote-xl text-on-surface">Egy hét, amelyből emlékek születnek!</p>
-      </blockquote>
-    </div>
-  </section>
-
-  <!-- Poster data for the shared lightbox -->
+  <!-- Gallery data for the shared lightbox (id -> [{ src, thumb, alt }]) -->
   <script type="application/json" id="galleries-data" set:html={JSON.stringify(galleryData)} />
 
   <GalleryLightbox />

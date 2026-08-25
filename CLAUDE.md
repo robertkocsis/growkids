@@ -55,7 +55,7 @@ src/
     Layout.astro          # shared header (logo + nav) and footer, loads webfonts
   components/
     SectionTitle.astro    # title + leaf-separator block
-    Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on / and /ivf-program/supporting-beginnings; accepts optional `id` for anchor links
+    Contacts.astro        # shared "Elérhetőségeink" section (e-mail / phone / FB / IG cards) — used on /, /about, /contact and /ivf-program/supporting-beginnings; accepts optional `id` for anchor links
     GalleryLightbox.astro # shared full-screen image lightbox (portal-to-body, delegated controls, thumbnails, keyboard nav); auto-hides nav chrome for single-image galleries. Used on /programs/lectures, /programs/camp and /programs/book-club — see usage contract below
   pages/                   # file-based routing
     index.astro            # /         — Kezdőlap (home)
@@ -63,7 +63,7 @@ src/
     programs.astro         # /programs     — redirect-only (meta refresh) → /programs/lectures
     programs/
       lectures.astro       # /programs/lectures — Előadások (lecture cards, newest-first; each event has an `id`; photos auto-loaded from src/assets/lectures/<id>/ via import.meta.glob; cards show 3 thumbs + "+N", open the shared GalleryLightbox)
-      camp.astro           # /programs/camp     — Kreatív Nyári Tábor 2026 (poster + facts, themed-day cards, Mesevilág closing-day block, price/CTA); poster in src/assets/camp/
+      camp.astro           # /programs/camp     — Kreatív Nyári Tábor 2026 (retrospective: minimal hero + closing group photo, then a per-day "Képgaléria"); the `days` array is the source of truth for the themed days, photos auto-loaded from src/assets/camp/days/<id>/ via import.meta.glob; cards show 6 thumbs + "+N", open the shared GalleryLightbox
       book-club.astro      # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér partnership; poster hero + könyvajánló, benefit cards, 3-step ordering, IDEA partner spotlight, Facebook-group CTA → facebook.com/groups/1671592864129569); promo graphics in src/assets/book-club/, both open the shared GalleryLightbox; bottom "Képgaléria" of past events (date + location only) auto-loaded from src/assets/book-club/events/<id>/ via import.meta.glob
     ivf-program.astro      # /ivf-program  — redirect-only (meta refresh) → /ivf-program/supporting-beginnings
     ivf-program/
@@ -79,8 +79,10 @@ src/
     ivf-national-program.ts  # Országos Lombikprogram copy (steps, key facts, help contact, official link) — single source for the page AND the print route, so the PDF never drifts from the site
   assets/
     logo.png               # logo (optimized PNG, ~41KB), imported via astro:assets
+    ivf-hands.jpeg         # hero photo of /ivf-program/supporting-beginnings (also the crop source for references/rollup/assets/photo.jpg)
     camp/                  # camp page imagery
-      kreativ-nyari-tabor-2026.jpeg  # official poster, shown on /programs/camp
+      tabor-2026-csoportkep.jpeg     # closing group photo, hero of /programs/camp
+      days/<id>/                     # per-day photo galleries — folder name must match a `days[].id` in camp.astro (numeric prefix keeps them ordered); files sorted by filename
     book-club/             # GrowKids Future Könyvklub imagery (shown on /programs/book-club)
       konyvklub-plakat.jpeg          # main club poster (hero)
       konyvajanlo-mozgasfejleszto-mesek.jpeg  # sample könyvajánló graphic
@@ -88,7 +90,7 @@ src/
     lectures/              # per-event photo galleries — one folder per lecture `id`
       <event-id>/          # drop image files here (sorted by filename) — auto-collected on /programs/lectures
     supporters/            # processed partner logos (transparent PNGs)
-      embryos.png          # Embryos — fertility & gynecology clinic
+      calla.png            # Calla — fertility clinic (home Partnerek grid + /ivf-program/supporting-beginnings)
       idea.png             # IDEA Könyvtér — stacked raster mark (used in the home Partnerek grid)
       idea.svg             # IDEA Könyvtér — official horizontal vector logo (sharp at any size; used in the /programs/book-club partner spotlight)
       olecom.png           # OLECOM — construction
@@ -162,7 +164,7 @@ Font-family aliases also exposed as Tailwind utilities: `font-newsreader`, `font
 - **Spacing:** 8px base unit. Section vertical padding: `py-20` (80px) or `py-28` (~112px) for hero. Horizontal page padding: `px-5 md:px-10 lg:px-20`.
 - **Container width:** Use inline `style="max-width: var(--container-max);"` (1200px) on the inner container of each section.
 - **Shadows:** `shadow-ambient` and `shadow-ambient-md` only — these are the tinted low-opacity ambient shadows defined in DESIGN.md.
-- **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the lightbox thumbnail strip in `programs/lectures.astro`).
+- **Helper utilities:** `no-scrollbar` — hides the scrollbar while keeping the element scrollable (used on the thumbnail strip in `components/GalleryLightbox.astro`).
 
 ### Shared layout patterns
 
@@ -209,7 +211,7 @@ import { Icon } from "astro-icon/components";
 
 ## Deployment
 
-Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/growkids/`. The workflow at `.github/workflows/deploy.yml` builds and deploys on every push to `main` (`actions/checkout@v5` + `withastro/action@v6` + `actions/deploy-pages@v5`, all on Node 24 runners). One-time enable in the repo: Settings → Pages → Source → "GitHub Actions".
+Current target: **GitHub Pages staging** at `https://robertkocsis.github.io/growkids/`. The workflow at `.github/workflows/deploy.yml` builds and deploys on every push to `main` (`actions/checkout@v5` + `withastro/action@v6` with `node-version: 22` + `actions/deploy-pages@v5`, on `ubuntu-latest`). One-time enable in the repo: Settings → Pages → Source → "GitHub Actions".
 
 ### Two targets, one branch
 

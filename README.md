@@ -52,7 +52,7 @@ src/
     programs.astro                  # /programs          — redirect → /programs/lectures
     programs/
       lectures.astro                # /programs/lectures — Előadások (per-event photo galleries)
-      camp.astro                    # /programs/camp     — Kreatív Nyári Tábor 2026
+      camp.astro                    # /programs/camp     — Kreatív Nyári Tábor 2026 (group photo + per-day photo galleries)
       book-club.astro               # /programs/book-club — GrowKids Future Könyvklub (IDEA Könyvtér)
     ivf-program.astro               # /ivf-program       — redirect → /ivf-program/supporting-beginnings
     ivf-program/
@@ -61,17 +61,18 @@ src/
       national-program-print.astro  # noindex print source → public/docs/*.pdf
     support.astro                   # /support           — Támogatás
     contact.astro                   # /contact           — Kapcsolat
+    robots.txt.ts                   # /robots.txt        — endpoint: noindex on staging, allow + sitemap on prod
   styles/global.css                 # Tailwind + design tokens
   data/
     ivf-national-program.ts         # Országos Lombikprogram copy (shared by the page + the PDF print route)
   assets/
     logo.png                        # logo (imported via astro:assets)
-    camp/                           # camp poster
+    camp/                           # closing group photo + days/<id>/ per-day photo galleries
     book-club/                      # Könyvklub promo graphics (poster + könyvajánló) + events/<id>/ photo galleries
     lectures/<event-id>/            # per-event lecture photos (auto-collected via import.meta.glob)
     supporters/                     # processed partner logos (transparent PNGs)
   utils/url.ts                      # url() helper that prefixes internal links with import.meta.env.BASE_URL
-public/                             # static files (favicons, robots.txt)
+public/                             # static files copied as-is (favicons, .htaccess)
   docs/                             # downloadable PDFs (Országos Lombikprogram steps)
 references/                         # design sources (NOT served / not part of the build)
   logo-original.png                 # high-res logo master
